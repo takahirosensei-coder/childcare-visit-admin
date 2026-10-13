@@ -790,7 +790,7 @@ textarea.edit-input{
   <button class="garden-btn" data-garden="南花畑園" onclick="selectGarden('南花畑園')">南花畑園</button>
   <button class="garden-btn" data-garden="梅島園" onclick="selectGarden('梅島園')">梅島園</button>
   <button class="garden-btn" data-garden="保木間園" onclick="selectGarden('保木間園')">保木間園</button>
-  <button class="garden-btn" data-garden="ちびっこ六町" onclick="selectGarden('ちびっこ六町')">ちびっこ六町</button>
+  <button class="garden-btn" data-garden="ちびっこランド" onclick="selectGarden('ちびっこランド')">ちびっこランド</button>
 </div>
 
         <div class="user-badge">
@@ -1011,7 +1011,7 @@ const sampleApplications = [
     previsit:true,
     visits:[
       {
-        garden:"ちびっこ六町",
+        garden:"ちびっこランド",
         status:"確定済み",
         wishes:["2026-10-19 午前","2026-10-20 午前"],
         confirmed:"2026-10-20",
@@ -1163,7 +1163,7 @@ const gardenColors = {
   "南花畑園":"#148b78",
   "梅島園":"#688ad0",
   "保木間園":"#d29a59",
-  "ちびっこ六町":"#bb83b7"
+  "ちびっこランド":"#bb83b7"
 };
 
 let activeStatus = "all";
@@ -1190,6 +1190,25 @@ function escapeHTML(value){
     .replace(/'/g,"&#39;");
 }
 
+// 旧園名の保存データを新園名へ引き継ぐ
+(function migrateGardenName(){
+
+  const storageKey = "ccs_visit_admin_demo_v2";
+  const saved = localStorage.getItem(storageKey);
+
+  if (!saved) return;
+
+  const updated = saved.replaceAll(
+    "ちびっこ六町",
+    "ちびっこランド"
+  );
+
+  if (updated !== saved) {
+    localStorage.setItem(storageKey, updated);
+  }
+
+})();
+  
 let selectedGarden = "all";
 
 function getGarden(){
