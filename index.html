@@ -678,6 +678,50 @@ textarea.edit-input{
   .info-row{grid-template-columns:100px 1fr}
   .edit-grid{grid-template-columns:1fr}
 }
+/* ========================================
+   園別切り替えボタン
+======================================== */
+
+.garden-switch{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:5px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+}
+
+.garden-btn{
+  min-height:35px;
+  padding:8px 13px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#75817d;
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.garden-btn:hover{
+  background:#f0f7f4;
+}
+
+.garden-btn.active{
+  background:var(--green);
+  color:#fff;
+}
+
+@media(max-width:800px){
+  .top-actions{
+    flex-wrap:wrap;
+  }
+
+  .garden-switch{
+    width:100%;
+  }
+}
 </style>
 </head>
 
@@ -741,17 +785,13 @@ textarea.edit-input{
 
       <div class="top-actions">
 
-        <select
-          class="select"
-          id="gardenFilter"
-          onchange="renderAll()"
-        >
-          <option value="all">すべての園</option>
-          <option value="南花畑園">南花畑園</option>
-          <option value="梅島園">梅島園</option>
-          <option value="保木間園">保木間園</option>
-          <option value="ちびっこ六町">ちびっこ六町</option>
-        </select>
+        <div class="garden-switch" id="gardenSwitch">
+  <button class="garden-btn active" data-garden="all" onclick="selectGarden('all')">全園</button>
+  <button class="garden-btn" data-garden="南花畑園" onclick="selectGarden('南花畑園')">南花畑園</button>
+  <button class="garden-btn" data-garden="梅島園" onclick="selectGarden('梅島園')">梅島園</button>
+  <button class="garden-btn" data-garden="保木間園" onclick="selectGarden('保木間園')">保木間園</button>
+  <button class="garden-btn" data-garden="ちびっこ六町" onclick="selectGarden('ちびっこ六町')">ちびっこ六町</button>
+</div>
 
         <div class="user-badge">
           <span class="avatar">本</span>
@@ -1150,8 +1190,24 @@ function escapeHTML(value){
     .replace(/'/g,"&#39;");
 }
 
+let selectedGarden = "all";
+
 function getGarden(){
-  return $("gardenFilter").value;
+  return selectedGarden;
+}
+
+function selectGarden(garden){
+
+  selectedGarden = garden;
+
+  document.querySelectorAll(".garden-btn").forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.dataset.garden === garden
+    );
+  });
+
+  renderAll();
 }
 
 function visibleVisits(app){
