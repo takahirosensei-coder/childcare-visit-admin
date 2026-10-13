@@ -64,7 +64,7 @@ function reloadApplications(){
    const grouped=new Map();
    for(const item of result.items){
      const key=(item.lineUserId||item.guardian+'|'+item.phone)+'|'+item.child+'|'+item.birthday;
-     if(!grouped.has(key))grouped.set(key,{id:item.id,child:item.child,birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
+     if(!grouped.has(key))grouped.set(key,{id:item.id,appliedAt:item.appliedAt,child:item.child,birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
      const a=grouped.get(key);a.previsit=a.previsit||item.previsit;if(item.previsit&&item.previsitDetails)a.previsitDetails=item.previsitDetails;
      a.visits.push({id:item.id,garden:item.garden,status:item.status,wishes:item.wishes,confirmed:item.confirmed,time:item.time,memo:item.memo,desiredDays:item.desiredDays||"",careStart:item.careStart||"",careEnd:item.careEnd||"",previsit:item.previsit});
    }
