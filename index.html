@@ -1329,33 +1329,34 @@ body {
   // 検索・並び替えを既存処理に追加
   const originalGetFilteredApplications = getFilteredApplications;
 
-  getFilteredApplications = function () {
-    let result = originalGetFilteredApplications();
+getFilteredApplications = function () {
+  let result = originalGetFilteredApplications();
 
-    if (searchWord) {
-      result = result.filter(a => {
-        const target = [
-          a.child,
-          a.guardian,
-          a.id
-        ].join(' ').toLowerCase();
+  if (searchWord) {
+    result = result.filter(a => {
+      const target = [
+        a.child,
+        a.guardian,
+        a.id
+      ].join(' ').toLowerCase();
 
-        return target.includes(searchWord);
-      });
+      return target.includes(searchWord);
+    });
+  }
+
+  return [...result].sort((a, b) => {
+    if (sortMode === 'visit') {
+      return getVisitTime(a) - getVisitTime(b);
     }
 
-    result = [...result];
+    const timeA = getAppliedTime(a);
+    const timeB = getAppliedTime(b);
 
-    if (sortMode === 'oldest') {
-      result.sort((a, b) => getAppliedTime(a) - getAppliedTime(b));
-    } else if (sortMode === 'visit') {
-      result.sort((a, b) => getVisitTime(a) - getVisitTime(b));
-    } else {
-      result.sort((a, b) => getAppliedTime(b) - getAppliedTime(a));
-    }
-
-    return result;
-  };
+    return sortMode === 'oldest'
+      ? timeA - timeB
+      : timeB - timeA;
+  });
+};
 
   function setupSearchAndSort() {
     if (document.getElementById('ccsSortSelect')) return;
