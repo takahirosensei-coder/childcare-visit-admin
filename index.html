@@ -79,13 +79,167 @@ let activeStatus="all",selectedGarden="all",currentView="list",currentUser=null;
 
 
 /* Google Identity Services: Google認証結果を表示する試作です。実運用ではIDトークンをサーバー側で検証する必要があります。 */
-function startGoogleLogin(){if(!window.google?.accounts?.id){$("loginError").textContent="Googleログインの読み込みを待って、もう一度お試しください。";return}$("loginError").textContent="";google.accounts.id.prompt(notification=>{if(notification.isNotDisplayed()||notification.isSkippedMoment()){$("loginError").textContent="ログイン画面が出ない場合は、ブラウザのポップアップやCookie設定をご確認ください。"}})}
-function decodeJWT(token){const part=token.split(".")[1];if(!part)throw Error("Invalid token");const b64=part.replace(/-/g,"+").replace(/_/g,"/");const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));return JSON.parse(new TextDecoder().decode(bytes))}
-function handleCredential(response){try{const data=decodeJWT(response.credential);const email=String(data.email||"").toLowerCase();if(data.aud!==CLIENT_ID||!data.email_verified||!data.exp||data.exp*1000<=Date.now()||!USERS[email]){$("loginError").textContent="このGoogleアカウントは登録されていません。";return}adminToken=response.credential;currentUser={email,...USERS[email]};$("loginPage").hidden=true;$("app").hidden=false;$("loginPage").style.display="none";$("app").style.display="flex";$("userRole").textContent=currentUser.role;$("userAvatar").textContent=currentUser.role==="本部"?"本":currentUser.role.charAt(0);selectGarden(currentUser.garden);reloadApplications()}catch(e){console.error(e);$("loginError").textContent="ログイン情報を確認できませんでした。"}}
-function initGoogle(){if(!window.google?.accounts?.id){setTimeout(initGoogle,300);return}google.accounts.id.initialize({client_id:CLIENT_ID,callback:handleCredential,auto_select:false,ux_mode:"popup"});google.accounts.id.renderButton($("googleButton"),{type:"standard",theme:"outline",size:"large",text:"signin_with",shape:"pill",width:250});}
-window.addEventListener("load",initGoogle);
-function logout(){currentUser=null;adminToken="";applications=[];google?.accounts?.id?.disableAutoSelect();$("app").style.display="none";$("loginPage").style.display="grid";$("loginError").textContent="";closeDetail()}
-function getGarden(){return selectedGarden}function selectGarden(g){selectedGarden=g;document.querySelectorAll(".garden-btn").forEach(b=>b.classList.toggle("active",b.dataset.garden===g));renderAll()}
+// ============================================================
+// Googleログイン・自動ログイン管理
+// ============================================================
+
+function startGoogleLogin() {
+  if (!window.google?.accounts?.id) {
+    $("loginError").textContent =
+      "Googleログインの読み込みを待って、もう一度お試しください。";
+    return;
+  }
+
+  $("loginError").textContent = "";
+
+  google.accounts.id.prompt(notification => {
+    if (
+      notification.isNotDisplayed() ||
+      notification.isSkippedMoment()
+    ) {
+      $("loginError").textContent =
+        "自動ログインできない場合は、下のGoogleログインボタンをご利用ください。";
+    }
+  });
+}
+
+
+// JWT解析
+function decodeJWT(token) {
+  const part = token.split(".")[1];
+
+  if (!part) {
+    throw Error("Invalid token");
+  }
+
+  const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+
+  const bytes = Uint8Array.from(
+    atob(b64),
+    c => c.charCodeAt(0)
+  );
+
+  return JSON.parse(
+    new TextDecoder().decode(bytes)
+  );
+}
+
+
+// Google認証成功時
+function handleCredential(response) {
+  try {
+    const data = decodeJWT(response.credential);
+
+    const email = String(
+      data.email || ""
+    ).toLowerCase();
+
+    if (
+      data.aud !== CLIENT_ID ||
+      !data.email_verified ||
+      !data.exp ||
+      data.exp * 1000 <= Date.now() ||
+      !USERS[email]
+    ) {
+      $("loginError").textContent =
+        "このGoogleアカウントは登録されていません。";
+      return;
+    }
+
+    adminToken = response.credential;
+
+    currentUser = {
+      email,
+      ...USERS[email]
+    };
+
+    // ログイン画面を閉じる
+    $("loginPage").hidden = true;
+    $("app").hidden = false;
+
+    $("loginPage").style.display = "none";
+    $("app").style.display = "flex";
+
+    $("userRole").textContent =
+      currentUser.role;
+
+    $("userAvatar").textContent =
+      currentUser.role === "本部"
+        ? "本"
+        : currentUser.role.charAt(0);
+
+    selectGarden(currentUser.garden);
+
+    reloadApplications();
+
+  } catch (e) {
+    console.error(e);
+
+    $("loginError").textContent =
+      "ログイン情報を確認できませんでした。";
+  }
+}
+
+
+// Googleログイン初期化
+function initGoogle() {
+
+  if (!window.google?.accounts?.id) {
+    setTimeout(initGoogle, 300);
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: handleCredential,
+
+    // Googleアカウントを自動選択
+    auto_select: true,
+
+    ux_mode: "popup"
+  });
+
+  // Googleログインボタン
+  google.accounts.id.renderButton(
+    $("googleButton"),
+    {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "signin_with",
+      shape: "pill",
+      width: 250
+    }
+  );
+
+  // ページ更新時に自動ログインを試みる
+  google.accounts.id.prompt();
+}
+
+
+// ページ読み込み時
+window.addEventListener(
+  "load",
+  initGoogle
+);
+
+
+// ログアウト
+function logout() {
+
+  currentUser = null;
+  adminToken = "";
+  applications = [];
+
+  // 明示的にログアウトした場合は自動ログインを停止
+  google?.accounts?.id?.disableAutoSelect();
+
+  $("app").style.display = "none";
+  $("loginPage").style.display = "grid";
+  $("loginError").textContent = "";
+
+  closeDetail();
+}function getGarden(){return selectedGarden}function selectGarden(g){selectedGarden=g;document.querySelectorAll(".garden-btn").forEach(b=>b.classList.toggle("active",b.dataset.garden===g));renderAll()}
 function visibleVisits(a){return a.visits.filter(v=>getGarden()==="all"||v.garden===getGarden())}function getFilteredApplications(){return applications.filter(a=>visibleVisits(a).length)}
 function statusClass(s){return statuses.find(x=>x.name===s)?.className||"new"}function badge(s){return `<span class="pill ${statusClass(s)}">${esc(s)}</span>`}function gardenLabel(g){return `<span class="garden-item"><span class="dot" style="background:${gardenColors[g]||'#148b78'}"></span>${esc(g)}</span>`}function formatDate(s){if(!s)return "未定";const p=s.split("-");return p.length===3?`${Number(p[1])}月${Number(p[2])}日`:s}
 function renderStats(){const apps=getFilteredApplications();$("stats").innerHTML=statuses.map(s=>`<button class="stat ${activeStatus===s.name?'active':''}" onclick="selectStatus('${s.name}')"><div class="stat-label">${s.name}</div><div class="stat-number">${apps.filter(a=>visibleVisits(a).some(v=>v.status===s.name)).length}<small>件</small></div></button>`).join("")}
