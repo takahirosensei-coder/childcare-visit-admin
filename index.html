@@ -256,13 +256,13 @@ async function printVisitSheet(managementId) {
 }
 
 
-// ------------------------------------------------------------
-// 印刷画面の生成
-// ------------------------------------------------------------
+// ============================================================
+// 園見学事前シート：A4縦・帳票印刷
+// ============================================================
 
 function renderVisitPrintWindow(win, data) {
 
-  const escapePrint = value =>
+  const escPrint = value =>
     String(value == null ? '' : value)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -270,156 +270,175 @@ function renderVisitPrintWindow(win, data) {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
-  const valueOf = (fields, column) => {
-    const item = (fields || [])
-      .find(f => f.column === column);
-
-    return item ? String(item.value || '') : '';
+  const get = (fields, col) => {
+    const f = (fields || []).find(x => Number(x.column) === col);
+    return f ? String(f.value || '') : '';
   };
 
-  const printField = (label, value) => {
-
-    if (!String(value || '').trim()) return '';
-
-    return `
-      <div class="print-field">
-        <div class="print-label">${escapePrint(label)}</div>
-        <div class="print-value">${escapePrint(value)}</div>
-      </div>
-    `;
+  const label = (fields, col) => {
+    const f = (fields || []).find(x => Number(x.column) === col);
+    return f ? String(f.label || '') : '';
   };
 
-  const printFields = (fields, exclude = []) => {
-
-    return (fields || [])
-      .filter(f =>
-        !exclude.includes(f.column) &&
-        String(f.value || '').trim()
-      )
-      .map(f => printField(f.label, f.value))
-      .join('');
-  };
-
-  const section = (title, content) => {
-
-    if (!content.trim()) return '';
-
-    return `
-      <section class="print-section">
-        <h2>${escapePrint(title)}</h2>
-        <div class="print-section-body">
-          ${content}
-        </div>
-      </section>
-    `;
-  };
-
-  // 続柄によって保護者名を父母欄に反映
-  const relation = String(
-    data.guardianRelation || ''
-  ).trim();
-
-  let motherName = valueOf(data.family, 28);
-  let fatherName = valueOf(data.family, 29);
-
-  if (
-    relation.includes('母') &&
-    !motherName
-  ) {
-    motherName = data.guardian;
-  }
-
-  if (
-    relation.includes('父') &&
-    !fatherName
-  ) {
-    fatherName = data.guardian;
-  }
-
-  // 住所
-  const address = [
-    valueOf(data.family, 33),
-    valueOf(data.family, 34),
-    valueOf(data.family, 35)
-  ].filter(Boolean).join('');
-
-  // お子さま・ご家庭
-  const familyHtml =
-
-    printField('お子さま', data.child) +
-
-    printField('生年月日', data.birthday) +
-
-    printFields(data.family, [
-      15, 16, 18, 19, 20,
-      28, 29, 33, 34, 35
-    ]) +
-
-    printField('保護者名', data.guardian) +
-
-    printField('続柄', data.guardianRelation) +
-
-    printField('電話番号', data.phone) +
-
-    printField('住所', address);
-
-  // 保育希望
-  const childcareHtml =
-    printFields(data.childcare);
-
-  // 母
-  const motherHtml =
-
-    printField('氏名', motherName) +
-
-    printFields(data.mother, [28]);
-
-  // 父
-  const fatherHtml =
-
-    printField('氏名', fatherName) +
-
-    printFields(data.father, [29]);
-
-  // その他
-  const otherHtml =
-    printFields(data.other);
-
-  // 見学申込時の質問
-  const questionHtml =
-    printField(
-      '質問・ご相談',
-      data.question || '記載なし'
-    );
-
-  // 事前シートの連絡事項
-  const messageHtml =
-    printField(
-      '園への連絡事項',
-      data.message || '記載なし'
-    );
-
-  // 職員メモ
-  const memoHtml = `
-    <div class="print-memo">
-      ${escapePrint(data.memo || '')}
+  const row = (title, value = '') => `
+    <div class="p-row">
+      <div class="p-label">${escPrint(title)}</div>
+      <div class="p-value">${escPrint(value)}</div>
     </div>
   `;
+
+  const box = (title, content, extraClass = '') => `
+    <section class="p-box ${extraClass}">
+      <div class="p-box-title">${escPrint(title)}</div>
+      <div class="p-box-body">${content}</div>
+    </section>
+  `;
+
+  // 母・父の共通項目
+  // スプレッドシートの「母_」「父_」は表示しない
+  const parentRows = (fields, mother) => {
+
+    const c = mother
+      ? {
+          name: 28,
+          status: 42,
+          startDate: 72,
+          returnDate: 43,
+          prefecture: 44,
+          city: 45,
+          town: 46,
+          days: 47,
+          start: 48,
+          end: 49,
+          timeNote: 77,
+          other: 73,
+          commute: 50,
+          commuteTime: 51,
+          dropoff: 52,
+          dropoffTime: 53
+        }
+      : {
+          name: 29,
+          status: 54,
+          startDate: 74,
+          returnDate: 55,
+          prefecture: 56,
+          city: 57,
+          town: 58,
+          days: 59,
+          start: 60,
+          end: 61,
+          timeNote: 76,
+          other: 75,
+          commute: 62,
+          commuteTime: 63,
+          dropoff: 64,
+          dropoffTime: 65
+        };
+
+    let name = get(fields, c.name);
+
+    if (!name) {
+      const relation = String(data.guardianRelation || '');
+
+      if (
+        (mother && relation.includes('母')) ||
+        (!mother && relation.includes('父'))
+      ) {
+        name = data.guardian || '';
+      }
+    }
+
+    const workplace = [
+      get(fields, c.prefecture),
+      get(fields, c.city),
+      get(fields, c.town)
+    ].filter(Boolean).join(' ');
+
+    return [
+      row('氏名', name),
+      row('就労状況', get(fields, c.status)),
+      row('勤務開始日', get(fields, c.startDate)),
+      row('復職予定日', get(fields, c.returnDate)),
+      row('勤務先住所', workplace),
+      row('勤務曜日', get(fields, c.days)),
+      row('勤務開始', get(fields, c.start)),
+      row('勤務終了', get(fields, c.end)),
+      row('勤務時間備考', get(fields, c.timeNote)),
+      row('通勤手段', get(fields, c.commute)),
+      row('通勤時間', get(fields, c.commuteTime)),
+      row('園への送迎手段', get(fields, c.dropoff)),
+      row('園への送迎時間', get(fields, c.dropoffTime)),
+      row('その他', get(fields, c.other))
+    ].join('');
+  };
+
+  // お子さまについて
+  const childRows = [
+    row('お子さま氏名', data.child),
+    row('生年月日', data.birthday),
+    row('性別', get(data.family, 30)),
+    row('希望クラス', get(data.family, 8)),
+    row('入園希望時期', get(data.family, 17)),
+    row('アレルギー', get(data.family, 31)),
+    row('アレルギー詳細', get(data.family, 32))
+  ].join('');
+
+  // 保育希望
+  const careRows = [
+    row('希望曜日', get(data.childcare, 38)),
+    row('希望開始時間', get(data.childcare, 39)),
+    row('希望終了時間', get(data.childcare, 40)),
+    row('入園検討状況', get(data.childcare, 41))
+  ].join('');
+
+  // ご家庭
+  const address = [
+    get(data.family, 33),
+    get(data.family, 34),
+    get(data.family, 35)
+  ].filter(Boolean).join('');
+
+  const familyRows = [
+    row('住所', address),
+    row('保護者氏名', data.guardian),
+    row('続柄', data.guardianRelation),
+    row('電話番号', data.phone)
+  ].join('');
+
+  // その他
+  const otherRows = [
+    row('園を知ったきっかけ', get(data.other, 66)),
+    row('紹介者', get(data.other, 67)),
+    row('きっかけ・その他', get(data.other, 68)),
+    row('他に興味のある園', get(data.other, 69)),
+    row('質問・ご相談（申込時）', data.question),
+    row('園への連絡事項（事前シート）', data.message)
+  ].join('');
+
+  // 右側の職員メモ
+  // 既存のメモを表示し、下部は手書き用の点線
+  const memoLines = Array.from(
+    { length: 19 },
+    () => '<div class="memo-line"></div>'
+  ).join('');
+
+  const today = new Date().toLocaleDateString(
+    'ja-JP',
+    {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+  );
 
   const html = `
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
-
-<title>
-園見学事前確認シート - ${escapePrint(data.child)}
-</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>見学事前シート - ${escPrint(data.child)}</title>
 
 <style>
 
@@ -438,169 +457,217 @@ html, body {
 }
 
 body {
-  background: white;
-  color: #111;
   font-family:
-    "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN",
     "Yu Gothic",
     "Meiryo",
     sans-serif;
-  font-size: 8px;
-  line-height: 1.32;
-}
-
-.sheet {
-  width: 100%;
-  transform-origin: top left;
-}
-
-.print-header {
-  border-bottom: 2px solid #111;
-  margin-bottom: 8px;
-  padding-bottom: 7px;
-}
-
-.print-brand {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-}
-
-.print-header h1 {
-  margin: 4px 0 7px;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.print-visit-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.print-section {
-  margin-bottom: 7px;
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-.print-section h2 {
-  margin: 0;
-  padding: 5px 7px;
-  border: 1px solid #444;
-  background: #ededed;
   color: #111;
+  background: white;
+  font-size: 8.5px;
+  line-height: 1.3;
+}
+
+.print-page {
+  width: 196mm;
+  margin: 0 auto;
+}
+
+.p-header {
+  text-align: center;
+  position: relative;
+  margin-bottom: 11px;
+  padding-bottom: 5px;
+}
+
+.p-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.p-subtitle {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.p-created {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  font-size: 9px;
+}
+
+.p-main {
+  display: grid;
+  grid-template-columns: minmax(0, 2.05fr) minmax(0, 0.95fr);
+  gap: 7mm;
+  align-items: stretch;
+}
+
+.p-left,
+.p-right {
+  min-width: 0;
+}
+
+.p-box {
+  margin-bottom: 7px;
+  border: 1px solid #888;
+  border-radius: 3px;
+  overflow: hidden;
+  break-inside: avoid;
+}
+
+.p-box-title {
+  padding: 5px 8px;
+  background: #414141;
+  color: white;
   font-size: 10px;
   font-weight: 800;
 }
 
-.print-section-body {
-  padding: 5px 7px;
-  border: 1px solid #aaa;
-  border-top: 0;
+.p-box-body {
+  padding: 0;
 }
 
-.print-field {
+.p-row {
   display: grid;
-  grid-template-columns: 87px minmax(0, 1fr);
-  gap: 5px;
-  padding: 2.5px 0;
-  border-bottom: 1px dotted #ddd;
-  break-inside: avoid;
+  grid-template-columns: 95px minmax(0, 1fr);
+  border-top: 1px solid #d4d4d4;
+  min-height: 18px;
 }
 
-.print-field:last-child {
-  border-bottom: 0;
+.p-row:first-child {
+  border-top: none;
 }
 
-.print-label {
-  color: #444;
+.p-label {
+  padding: 3px 5px;
+  background: #f3f3f3;
+  border-right: 1px solid #d4d4d4;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 
-.print-value {
+.p-value {
+  padding: 3px 5px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.print-two-columns {
+.p-parents {
   display: grid;
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-  gap: 7px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
 }
 
-.print-two-columns .print-field {
-  grid-template-columns: 70px minmax(0,1fr);
-  gap: 4px;
+.p-parents .p-row {
+  grid-template-columns: 67px minmax(0, 1fr);
+  min-height: 18px;
 }
 
-.print-memo {
-  min-height: 30px;
+.p-parents .p-label {
+  font-size: 7.5px;
+  padding: 3px;
+}
+
+.p-parents .p-value {
+  font-size: 7.5px;
+  padding: 3px;
+}
+
+.p-visit .p-row {
+  grid-template-columns: 73px minmax(0, 1fr);
+  min-height: 29px;
+}
+
+.p-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.p-staff-memo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 195mm;
+}
+
+.p-staff-memo .p-box-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}
+
+.p-existing-memo {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font-size: 9px;
+  margin-bottom: 7px;
 }
 
-.print-controls {
+.p-memo-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.memo-line {
+  height: 1px;
+  border-bottom: 1px dotted #aaa;
+  margin: 8px 0;
+}
+
+.p-bottom {
+  margin-top: 3px;
+}
+
+.p-bottom .p-row {
+  grid-template-columns: 165px minmax(0, 1fr);
+  min-height: 20px;
+}
+
+.print-tools {
   position: fixed;
-  top: 12px;
-  right: 12px;
+  top: 15px;
+  right: 15px;
   display: flex;
   gap: 8px;
-  z-index: 100;
 }
 
-.print-controls button {
+.print-tools button {
+  padding: 10px 15px;
   border: 0;
   border-radius: 7px;
   background: #222;
   color: white;
-  padding: 10px 14px;
   cursor: pointer;
-  font-size: 13px;
-}
-
-.print-warning {
-  display: none;
-  margin: 12px 0;
-  padding: 10px;
-  border: 1px solid #999;
-  font-size: 12px;
 }
 
 @media screen {
 
   body {
     background: #e8e8e8;
-    padding: 24px;
+    padding: 30px 0;
   }
 
-  .sheet {
-    width: 196mm;
+  .print-page {
+    background: white;
     min-height: 283mm;
-    margin: 0 auto;
-    padding: 7mm;
-    background: white;
+    padding: 8mm;
     box-shadow: 0 5px 25px #0002;
-  }
-
-  .print-warning {
-    display: block;
-    max-width: 196mm;
-    margin: 12px auto;
-    background: white;
   }
 
 }
 
 @media print {
 
-  .print-controls,
-  .print-warning {
-    display: none !important;
+  .print-tools {
+    display: none;
   }
 
   body {
@@ -608,7 +675,7 @@ body {
     padding: 0;
   }
 
-  .sheet {
+  .print-page {
     width: 100%;
     min-height: 0;
     padding: 0;
@@ -619,100 +686,72 @@ body {
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div class="print-controls">
-
-  <button onclick="window.print()">
-    印刷・PDF保存
-  </button>
-
-  <button onclick="window.close()">
-    閉じる
-  </button>
-
+<div class="print-tools">
+  <button onclick="window.print()">印刷・PDF保存</button>
+  <button onclick="window.close()">閉じる</button>
 </div>
 
-<div class="print-warning" id="printWarning">
-  印刷前にプレビューを確認してください。
-  回答が長い場合、A4で複数ページになることがあります。
-</div>
+<main class="print-page">
 
-<main class="sheet" id="printSheet">
-
-  <header class="print-header">
-
-    <div class="print-brand">
-      CHILD CARE SUPPORT
-    </div>
-
-    <h1>
-      園見学 事前確認シート
-    </h1>
-
-    <div class="print-visit-info">
-
-      <div>
-        対象園：
-        ${escapePrint(data.garden)}
-      </div>
-
-      <div>
-        見学日時：
-        ${escapePrint(data.confirmed || '未確定')}
-        ${escapePrint(data.time)}
-      </div>
-
-    </div>
-
+  <header class="p-header">
+    <h1>見学事前シート</h1>
+    <div class="p-subtitle">チャイルドケアサポート</div>
+    <div class="p-created">作成日　${escPrint(today)}</div>
   </header>
 
-  ${section(
-    '01　お子さま・ご家庭',
-    familyHtml
-  )}
+  <div class="p-main">
 
-  ${section(
-    '02　保育のご希望',
-    childcareHtml
-  )}
+    <div class="p-left">
 
-  <div class="print-two-columns">
+      ${box('1. お子さまについて', childRows)}
 
-    ${section(
-      '03　お母さまの情報',
-      motherHtml
-    )}
+      ${box('2. 保育希望について', careRows)}
 
-    ${section(
-      '04　お父さまの情報',
-      fatherHtml
-    )}
+      ${box('3. ご家庭の情報', familyRows)}
+
+      <div class="p-parents">
+        ${box('4. お母さまについて', parentRows(data.mother, true))}
+        ${box('5. お父さまについて', parentRows(data.father, false))}
+      </div>
+
+    </div>
+
+    <div class="p-right">
+
+      ${box(
+        '見学情報',
+        row('見学予定日', data.confirmed) +
+        row('見学予定時間', data.time) +
+        row('園名', data.garden),
+        'p-visit'
+      )}
+
+      <section class="p-box p-staff-memo">
+        <div class="p-box-title">職員記入メモ</div>
+        <div class="p-box-body">
+
+          <div class="p-existing-memo">
+            ${escPrint(data.memo || '')}
+          </div>
+
+          <div class="p-memo-lines">
+            ${memoLines}
+          </div>
+
+        </div>
+      </section>
+
+    </div>
 
   </div>
 
-  ${section(
-    '05　その他の事前回答',
-    otherHtml
-  )}
-
-  ${section(
-    '06　見学申込時の質問・ご相談',
-    questionHtml
-  )}
-
-  ${section(
-    '07　事前シート：園への連絡事項',
-    messageHtml
-  )}
-
-  ${section(
-    '08　職員メモ',
-    memoHtml
-  )}
+  <div class="p-bottom">
+    ${box('6. その他・ご相談内容', otherRows)}
+  </div>
 
 </main>
 
@@ -723,6 +762,5 @@ body {
   win.document.open();
   win.document.write(html);
   win.document.close();
-
 }
 </script></body></html>
