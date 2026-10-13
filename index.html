@@ -1285,16 +1285,30 @@ body {
 
   // 申込日時を比較用の数値に変換
   function getAppliedTime(a) {
-    const value = String(a.appliedAt || '').trim();
-    if (!value) return 0;
+  const value = String(a.appliedAt || '').trim();
+  if (!value) return 0;
 
-    const normalized = value
-      .replace(/\//g, '-')
-      .replace(' ', 'T');
+  // 例：2026/10/14 15:30:00
+  // 例：2026-10-14 15:30
+  // 例：2026年10月14日 15:30
+  const match = value.match(
+    /(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})日?\s*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?/
+  );
 
-    const time = Date.parse(normalized);
-    return Number.isFinite(time) ? time : 0;
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    const day = Number(match[3]);
+    const hour = Number(match[4] || 0);
+    const minute = Number(match[5] || 0);
+    const second = Number(match[6] || 0);
+
+    return new Date(year, month, day, hour, minute, second).getTime();
   }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
   // 見学予定日を比較
   function getVisitTime(a) {
