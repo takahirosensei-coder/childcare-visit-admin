@@ -119,4 +119,610 @@ function saveVisit(id,i){
  .catch(err=>fail('保存失敗：'+err.message));
 }
 function closeDetail(){$("modal").classList.remove('open');document.body.style.overflow=''}function closeOnOverlay(e){if(e.target===$("modal"))closeDetail()}document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});function renderAll(){renderStats();renderList();renderCalendar()}renderAll();
+// ============================================================
+// 見学管理：A4印刷機能
+// ============================================================
+
+// 既存の申込詳細画面に印刷ボタンを追加
+const originalOpenDetailForPrint = openDetail;
+
+openDetail = function(id) {
+
+  originalOpenDetailForPrint(id);
+
+  const a = applications.find(x => x.id === id);
+
+  if (!a) return;
+
+  const body = document.getElementById('detailBody');
+
+  if (!body) return;
+
+  const box = document.createElement('div');
+
+  box.style.cssText =
+    'margin:20px 0;padding:18px;' +
+    'border:1px solid #d9e4df;' +
+    'border-radius:12px;background:#f7faf8;';
+
+  const title = document.createElement('div');
+
+  title.textContent = '見学事前シートの印刷';
+
+  title.style.cssText =
+    'font-weight:800;margin-bottom:10px;';
+
+  box.appendChild(title);
+
+  const description = document.createElement('div');
+
+  description.textContent =
+    '印刷する園を選択してください。A4縦・白黒の印刷画面が開きます。';
+
+  description.style.cssText =
+    'font-size:12px;color:#68736f;' +
+    'line-height:1.7;margin-bottom:12px;';
+
+  box.appendChild(description);
+
+  a.visits.forEach(v => {
+
+    const button = document.createElement('button');
+
+    button.type = 'button';
+
+    button.textContent =
+      '印刷する：' + v.garden;
+
+    button.style.cssText =
+      'display:block;width:100%;' +
+      'margin:7px 0;padding:12px;' +
+      'border:1px solid #148b78;' +
+      'border-radius:9px;' +
+      'background:white;color:#148b78;' +
+      'font-weight:800;cursor:pointer;';
+
+    button.onclick = () => {
+      printVisitSheet(v.id);
+    };
+
+    box.appendChild(button);
+
+  });
+
+  const section = document.createElement('div');
+
+  section.className = 'detail-section';
+
+  section.appendChild(box);
+
+  const previsitHeading = [...body.querySelectorAll('h3')]
+    .find(h => h.textContent.trim() === '事前シート');
+
+  if (previsitHeading && previsitHeading.parentElement) {
+
+    previsitHeading.parentElement.before(section);
+
+  } else {
+
+    body.appendChild(section);
+
+  }
+};
+
+
+// ------------------------------------------------------------
+// 印刷データ取得
+// ------------------------------------------------------------
+
+async function printVisitSheet(managementId) {
+
+  if (!adminToken) {
+    alert('Googleログインをやり直してください。');
+    return;
+  }
+
+  // 非同期通信前にウィンドウを開く
+  // ポップアップブロックを避ける
+  const win = window.open('', '_blank');
+
+  if (!win) {
+    alert('印刷画面を開けません。ポップアップを許可してください。');
+    return;
+  }
+
+  win.document.write(
+    '<!doctype html><html lang="ja">' +
+    '<head><meta charset="UTF-8">' +
+    '<title>印刷準備中</title></head>' +
+    '<body>印刷データを取得しています…</body></html>'
+  );
+
+  try {
+
+    const data = await bridgeRequest('print', {
+      id: managementId
+    });
+
+    renderVisitPrintWindow(win, data);
+
+  } catch (err) {
+
+    win.document.body.textContent =
+      '印刷データの取得に失敗しました：' +
+      err.message;
+
+  }
+}
+
+
+// ------------------------------------------------------------
+// 印刷画面の生成
+// ------------------------------------------------------------
+
+function renderVisitPrintWindow(win, data) {
+
+  const escapePrint = value =>
+    String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+  const valueOf = (fields, column) => {
+    const item = (fields || [])
+      .find(f => f.column === column);
+
+    return item ? String(item.value || '') : '';
+  };
+
+  const printField = (label, value) => {
+
+    if (!String(value || '').trim()) return '';
+
+    return `
+      <div class="print-field">
+        <div class="print-label">${escapePrint(label)}</div>
+        <div class="print-value">${escapePrint(value)}</div>
+      </div>
+    `;
+  };
+
+  const printFields = (fields, exclude = []) => {
+
+    return (fields || [])
+      .filter(f =>
+        !exclude.includes(f.column) &&
+        String(f.value || '').trim()
+      )
+      .map(f => printField(f.label, f.value))
+      .join('');
+  };
+
+  const section = (title, content) => {
+
+    if (!content.trim()) return '';
+
+    return `
+      <section class="print-section">
+        <h2>${escapePrint(title)}</h2>
+        <div class="print-section-body">
+          ${content}
+        </div>
+      </section>
+    `;
+  };
+
+  // 続柄によって保護者名を父母欄に反映
+  const relation = String(
+    data.guardianRelation || ''
+  ).trim();
+
+  let motherName = valueOf(data.family, 28);
+  let fatherName = valueOf(data.family, 29);
+
+  if (
+    relation.includes('母') &&
+    !motherName
+  ) {
+    motherName = data.guardian;
+  }
+
+  if (
+    relation.includes('父') &&
+    !fatherName
+  ) {
+    fatherName = data.guardian;
+  }
+
+  // 住所
+  const address = [
+    valueOf(data.family, 33),
+    valueOf(data.family, 34),
+    valueOf(data.family, 35)
+  ].filter(Boolean).join('');
+
+  // お子さま・ご家庭
+  const familyHtml =
+
+    printField('お子さま', data.child) +
+
+    printField('生年月日', data.birthday) +
+
+    printFields(data.family, [
+      15, 16, 18, 19, 20,
+      28, 29, 33, 34, 35
+    ]) +
+
+    printField('保護者名', data.guardian) +
+
+    printField('続柄', data.guardianRelation) +
+
+    printField('電話番号', data.phone) +
+
+    printField('住所', address);
+
+  // 保育希望
+  const childcareHtml =
+    printFields(data.childcare);
+
+  // 母
+  const motherHtml =
+
+    printField('氏名', motherName) +
+
+    printFields(data.mother, [28]);
+
+  // 父
+  const fatherHtml =
+
+    printField('氏名', fatherName) +
+
+    printFields(data.father, [29]);
+
+  // その他
+  const otherHtml =
+    printFields(data.other);
+
+  // 見学申込時の質問
+  const questionHtml =
+    printField(
+      '質問・ご相談',
+      data.question || '記載なし'
+    );
+
+  // 事前シートの連絡事項
+  const messageHtml =
+    printField(
+      '園への連絡事項',
+      data.message || '記載なし'
+    );
+
+  // 職員メモ
+  const memoHtml = `
+    <div class="print-memo">
+      ${escapePrint(data.memo || '')}
+    </div>
+  `;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>
+園見学事前確認シート - ${escapePrint(data.child)}
+</title>
+
+<style>
+
+@page {
+  size: A4 portrait;
+  margin: 7mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: white;
+  color: #111;
+  font-family:
+    "Hiragino Sans",
+    "Yu Gothic",
+    "Meiryo",
+    sans-serif;
+  font-size: 8px;
+  line-height: 1.32;
+}
+
+.sheet {
+  width: 100%;
+  transform-origin: top left;
+}
+
+.print-header {
+  border-bottom: 2px solid #111;
+  margin-bottom: 8px;
+  padding-bottom: 7px;
+}
+
+.print-brand {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.print-header h1 {
+  margin: 4px 0 7px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.print-visit-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.print-section {
+  margin-bottom: 7px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.print-section h2 {
+  margin: 0;
+  padding: 5px 7px;
+  border: 1px solid #444;
+  background: #ededed;
+  color: #111;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.print-section-body {
+  padding: 5px 7px;
+  border: 1px solid #aaa;
+  border-top: 0;
+}
+
+.print-field {
+  display: grid;
+  grid-template-columns: 87px minmax(0, 1fr);
+  gap: 5px;
+  padding: 2.5px 0;
+  border-bottom: 1px dotted #ddd;
+  break-inside: avoid;
+}
+
+.print-field:last-child {
+  border-bottom: 0;
+}
+
+.print-label {
+  color: #444;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.print-value {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.print-two-columns {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 7px;
+  align-items: start;
+}
+
+.print-two-columns .print-field {
+  grid-template-columns: 70px minmax(0,1fr);
+  gap: 4px;
+}
+
+.print-memo {
+  min-height: 30px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.print-controls {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.print-controls button {
+  border: 0;
+  border-radius: 7px;
+  background: #222;
+  color: white;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.print-warning {
+  display: none;
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid #999;
+  font-size: 12px;
+}
+
+@media screen {
+
+  body {
+    background: #e8e8e8;
+    padding: 24px;
+  }
+
+  .sheet {
+    width: 196mm;
+    min-height: 283mm;
+    margin: 0 auto;
+    padding: 7mm;
+    background: white;
+    box-shadow: 0 5px 25px #0002;
+  }
+
+  .print-warning {
+    display: block;
+    max-width: 196mm;
+    margin: 12px auto;
+    background: white;
+  }
+
+}
+
+@media print {
+
+  .print-controls,
+  .print-warning {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    padding: 0;
+  }
+
+  .sheet {
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="print-controls">
+
+  <button onclick="window.print()">
+    印刷・PDF保存
+  </button>
+
+  <button onclick="window.close()">
+    閉じる
+  </button>
+
+</div>
+
+<div class="print-warning" id="printWarning">
+  印刷前にプレビューを確認してください。
+  回答が長い場合、A4で複数ページになることがあります。
+</div>
+
+<main class="sheet" id="printSheet">
+
+  <header class="print-header">
+
+    <div class="print-brand">
+      CHILD CARE SUPPORT
+    </div>
+
+    <h1>
+      園見学 事前確認シート
+    </h1>
+
+    <div class="print-visit-info">
+
+      <div>
+        対象園：
+        ${escapePrint(data.garden)}
+      </div>
+
+      <div>
+        見学日時：
+        ${escapePrint(data.confirmed || '未確定')}
+        ${escapePrint(data.time)}
+      </div>
+
+    </div>
+
+  </header>
+
+  ${section(
+    '01　お子さま・ご家庭',
+    familyHtml
+  )}
+
+  ${section(
+    '02　保育のご希望',
+    childcareHtml
+  )}
+
+  <div class="print-two-columns">
+
+    ${section(
+      '03　お母さまの情報',
+      motherHtml
+    )}
+
+    ${section(
+      '04　お父さまの情報',
+      fatherHtml
+    )}
+
+  </div>
+
+  ${section(
+    '05　その他の事前回答',
+    otherHtml
+  )}
+
+  ${section(
+    '06　見学申込時の質問・ご相談',
+    questionHtml
+  )}
+
+  ${section(
+    '07　事前シート：園への連絡事項',
+    messageHtml
+  )}
+
+  ${section(
+    '08　職員メモ',
+    memoHtml
+  )}
+
+</main>
+
+</body>
+</html>
+`;
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+
+}
 </script></body></html>
