@@ -1273,5 +1273,130 @@ body {
 
 })();
 </script>
- 
+ <!-- ============================================
+     見学管理：新着順・検索・並び替え
+============================================= -->
+<script>
+(function () {
+  'use strict';
+
+  let sortMode = 'newest';
+  let searchWord = '';
+
+  // 申込日時を比較用の数値に変換
+  function getAppliedTime(a) {
+    const value = String(a.appliedAt || '').trim();
+    if (!value) return 0;
+
+    const normalized = value
+      .replace(/\//g, '-')
+      .replace(' ', 'T');
+
+    const time = Date.parse(normalized);
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  // 見学予定日を比較
+  function getVisitTime(a) {
+    if (!Array.isArray(a.visits)) return Infinity;
+
+    const dates = a.visits
+      .filter(v => v.confirmed)
+      .map(v => {
+        const date = String(v.confirmed || '').replace(/\//g, '-');
+        const time = String(v.time || '00:00');
+        const parsed = Date.parse(date + 'T' + time);
+        return Number.isFinite(parsed) ? parsed : Infinity;
+      });
+
+    return dates.length ? Math.min(...dates) : Infinity;
+  }
+
+  // 検索・並び替えを既存処理に追加
+  const originalGetFilteredApplications = getFilteredApplications;
+
+  getFilteredApplications = function () {
+    let result = originalGetFilteredApplications();
+
+    if (searchWord) {
+      result = result.filter(a => {
+        const target = [
+          a.child,
+          a.guardian,
+          a.id
+        ].join(' ').toLowerCase();
+
+        return target.includes(searchWord);
+      });
+    }
+
+    result = [...result];
+
+    if (sortMode === 'oldest') {
+      result.sort((a, b) => getAppliedTime(a) - getAppliedTime(b));
+    } else if (sortMode === 'visit') {
+      result.sort((a, b) => getVisitTime(a) - getVisitTime(b));
+    } else {
+      result.sort((a, b) => getAppliedTime(b) - getAppliedTime(a));
+    }
+
+    return result;
+  };
+
+  function setupSearchAndSort() {
+    if (document.getElementById('ccsSortSelect')) return;
+
+    const searchInput = document.getElementById('searchInput');
+
+    if (!searchInput) return;
+
+    // 並び替えメニュー
+    const select = document.createElement('select');
+    select.id = 'ccsSortSelect';
+
+    select.innerHTML = `
+      <option value="newest">申込が新しい順</option>
+      <option value="oldest">申込が古い順</option>
+      <option value="visit">見学予定日順</option>
+    `;
+
+    select.style.cssText = `
+      padding: 11px 12px;
+      border: 1px solid #e0e8e5;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #344b45;
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 180px;
+    `;
+
+    select.addEventListener('change', function () {
+      sortMode = this.value;
+      renderList();
+    });
+
+    // 既存の検索欄を利用
+    searchInput.addEventListener('input', function () {
+      searchWord = this.value.trim().toLowerCase();
+      renderList();
+    });
+
+    searchInput.placeholder = 'お子さま・保護者名で検索';
+
+    const parent = searchInput.parentElement;
+    parent.style.display = 'flex';
+    parent.style.gap = '10px';
+    parent.style.alignItems = 'center';
+
+    parent.insertBefore(select, searchInput);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupSearchAndSort);
+  } else {
+    setupSearchAndSort();
+  }
+})();
+</script>
 </body></html>
