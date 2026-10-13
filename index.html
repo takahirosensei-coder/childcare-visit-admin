@@ -1180,4 +1180,98 @@ body {
   win.document.close();
 
 }
-</script></body></html>
+</script>
+
+<!-- ==========================================
+     見学管理：最新情報更新ボタン
+========================================== -->
+<script>
+(function () {
+
+  function setupRefreshButton() {
+
+    // 二重設置防止
+    if (document.getElementById('ccsRefreshButton')) return;
+
+    // ログアウトボタンを探す
+    const logoutButton = Array.from(
+      document.querySelectorAll('button')
+    ).find(btn => btn.textContent.includes('ログアウト'));
+
+    if (!logoutButton) return;
+
+    // 更新ボタンを作成
+    const button = document.createElement('button');
+
+    button.id = 'ccsRefreshButton';
+    button.type = 'button';
+    button.textContent = '↻ 最新情報に更新';
+
+    button.style.cssText = `
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid #d5e5e1;
+      background: #ffffff;
+      color: #168b78;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      margin-right: 10px;
+    `;
+
+    // ログアウトボタンの左に配置
+    logoutButton.parentNode.insertBefore(
+      button,
+      logoutButton
+    );
+
+    button.addEventListener('click', async function () {
+
+      if (button.disabled) return;
+
+      button.disabled = true;
+      button.textContent = '↻ 更新中…';
+
+      try {
+
+        await reloadApplications();
+
+        button.textContent = '✓ 更新しました';
+
+        setTimeout(() => {
+          button.textContent = '↻ 最新情報に更新';
+          button.disabled = false;
+        }, 1800);
+
+      } catch (error) {
+
+        console.error(error);
+
+        button.textContent = '更新に失敗しました';
+
+        setTimeout(() => {
+          button.textContent = '↻ 最新情報に更新';
+          button.disabled = false;
+        }, 2500);
+
+      }
+
+    });
+
+  }
+
+  // ページ読み込み後に設置
+  if (document.readyState === 'loading') {
+    document.addEventListener(
+      'DOMContentLoaded',
+      setupRefreshButton
+    );
+  } else {
+    setupRefreshButton();
+  }
+
+})();
+</script>
+ 
+</body></html>
