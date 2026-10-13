@@ -26,13 +26,17 @@ body{
   background:var(--bg);
   color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,
-  "Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif;
+    "Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif;
   font-size:14px;
 }
 
-button,input,select{font:inherit}
+button,input,select,textarea{font:inherit}
 button{cursor:pointer}
-button:focus-visible,input:focus-visible,select:focus-visible{
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
   outline:3px solid #a5dcd2;
   outline-offset:2px;
 }
@@ -40,6 +44,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 .app{display:flex;min-height:100vh}
 
 /* サイドバー */
+
 .sidebar{
   width:246px;
   flex-shrink:0;
@@ -48,9 +53,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   padding:30px 18px;
 }
 
-.brand{
-  padding:4px 14px 36px;
-}
+.brand{padding:4px 14px 36px}
 
 .brand-en{
   color:var(--green);
@@ -111,6 +114,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 }
 
 /* メイン */
+
 .main{
   flex:1;
   min-width:0;
@@ -136,7 +140,6 @@ h1{
   margin:6px 0 0;
   font-size:27px;
   font-weight:800;
-  letter-spacing:.02em;
 }
 
 .top-actions{
@@ -147,7 +150,7 @@ h1{
 
 .select{
   min-height:43px;
-  padding:0 36px 0 15px;
+  padding:0 15px;
   border:1px solid var(--line);
   border-radius:10px;
   background:#fff;
@@ -177,6 +180,7 @@ h1{
 }
 
 /* 集計カード */
+
 .stats{
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
@@ -220,7 +224,8 @@ h1{
   font-weight:500;
 }
 
-/* 共通カード */
+/* 共通パネル */
+
 .panel{
   overflow:hidden;
   border:1px solid var(--line);
@@ -256,15 +261,10 @@ h1{
   border:1px solid var(--line);
   border-radius:10px;
   background:#f7f9f8;
-  outline:none;
-}
-
-.search:focus{
-  border-color:var(--green);
-  background:#fff;
 }
 
 /* 一覧 */
+
 .table-wrap{overflow-x:auto}
 
 table{
@@ -346,6 +346,7 @@ tbody tr:hover{background:#f4faf8}
 }
 
 /* カレンダー */
+
 .calendar-toolbar{
   display:flex;
   align-items:center;
@@ -387,11 +388,11 @@ tbody tr:hover{background:#f4faf8}
 
 .day{
   min-height:130px;
+  min-width:0;
   padding:9px;
   border-right:1px solid var(--line);
   border-bottom:1px solid var(--line);
   background:#fff;
-  min-width:0;
 }
 
 .day:nth-child(7n){border-right:0}
@@ -435,7 +436,8 @@ tbody tr:hover{background:#f4faf8}
   font-size:12px;
 }
 
-/* 詳細 */
+/* 詳細パネル */
+
 .modal-overlay{
   position:fixed;
   inset:0;
@@ -448,7 +450,7 @@ tbody tr:hover{background:#f4faf8}
 .modal-overlay.open{display:flex}
 
 .detail{
-  width:min(560px,100%);
+  width:min(600px,100%);
   height:100%;
   overflow-y:auto;
   background:#fff;
@@ -500,9 +502,7 @@ tbody tr:hover{background:#f4faf8}
   font-size:13px;
 }
 
-.detail-section{
-  margin-top:29px;
-}
+.detail-section{margin-top:29px}
 
 .detail-section h3{
   margin:0 0 16px;
@@ -531,10 +531,10 @@ tbody tr:hover{background:#f4faf8}
 }
 
 .visit-card{
-  margin-bottom:13px;
-  padding:18px;
+  margin-bottom:16px;
+  padding:20px;
   border:1px solid var(--line);
-  border-radius:13px;
+  border-radius:14px;
 }
 
 .visit-card-head{
@@ -542,7 +542,7 @@ tbody tr:hover{background:#f4faf8}
   justify-content:space-between;
   align-items:center;
   gap:10px;
-  margin-bottom:13px;
+  margin-bottom:16px;
 }
 
 .visit-garden{font-weight:800}
@@ -551,6 +551,80 @@ tbody tr:hover{background:#f4faf8}
   margin:8px 0;
   color:#57625e;
   font-size:13px;
+}
+
+.edit-area{
+  margin-top:20px;
+  padding-top:18px;
+  border-top:1px solid var(--line);
+}
+
+.edit-title{
+  margin-bottom:15px;
+  color:var(--green);
+  font-size:13px;
+  font-weight:800;
+}
+
+.edit-field{margin-bottom:16px}
+
+.edit-label{
+  display:block;
+  margin-bottom:8px;
+  color:#57625e;
+  font-size:12px;
+  font-weight:700;
+}
+
+.edit-input{
+  width:100%;
+  min-height:45px;
+  padding:11px 12px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:#f2f4f3;
+  color:var(--text);
+}
+
+.edit-input:focus{
+  border-color:var(--green);
+  background:#fff;
+  outline:none;
+  box-shadow:0 0 0 3px rgba(20,139,120,.13);
+}
+
+textarea.edit-input{
+  min-height:110px;
+  resize:vertical;
+}
+
+.edit-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.save-btn{
+  width:100%;
+  min-height:48px;
+  margin-top:6px;
+  padding:13px;
+  border:0;
+  border-radius:10px;
+  background:var(--green);
+  color:#fff;
+  font-weight:800;
+  box-shadow:0 6px 16px rgba(20,139,120,.15);
+}
+
+.save-btn:hover{background:var(--dark)}
+
+.save-message{
+  min-height:20px;
+  margin-top:10px;
+  color:var(--green);
+  font-size:12px;
+  font-weight:700;
 }
 
 .demo-note{
@@ -563,7 +637,6 @@ tbody tr:hover{background:#f4faf8}
   line-height:1.8;
 }
 
-/* 画面切替 */
 .view{display:none}
 .view.active{display:block}
 
@@ -576,12 +649,14 @@ tbody tr:hover{background:#f4faf8}
 
 @media(max-width:800px){
   .app{display:block}
+
   .sidebar{
     width:100%;
     padding:16px;
     border-right:0;
     border-bottom:1px solid var(--line);
   }
+
   .brand{padding:0 0 12px}
   .nav-label,.sidebar-bottom{display:none}
   .nav-items{display:flex;gap:8px}
@@ -597,11 +672,11 @@ tbody tr:hover{background:#f4faf8}
 
 @media(max-width:500px){
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .calendar-grid{font-size:11px}
   .day{min-height:70px}
   .event{font-size:9px}
   .detail-body{padding:18px}
   .info-row{grid-template-columns:100px 1fr}
+  .edit-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -611,6 +686,7 @@ tbody tr:hover{background:#f4faf8}
 <div class="app">
 
   <aside class="sidebar">
+
     <div class="brand">
       <div class="brand-en">CHILD CARE SUPPORT</div>
       <div class="brand-title">見学管理</div>
@@ -620,32 +696,56 @@ tbody tr:hover{background:#f4faf8}
     <div class="nav-label">WORKSPACE</div>
 
     <div class="nav-items">
-      <button class="nav-btn active" id="navList" onclick="switchView('list')">
-        <span class="nav-icon">▤</span> 申込一覧
+
+      <button
+        class="nav-btn active"
+        id="navList"
+        onclick="switchView('list')"
+      >
+        <span class="nav-icon">▤</span>
+        申込一覧
       </button>
-      <button class="nav-btn" id="navCalendar" onclick="switchView('calendar')">
-        <span class="nav-icon">▦</span> カレンダー
+
+      <button
+        class="nav-btn"
+        id="navCalendar"
+        onclick="switchView('calendar')"
+      >
+        <span class="nav-icon">▦</span>
+        カレンダー
       </button>
+
     </div>
 
     <div class="sidebar-bottom">
       CHILD CARE SUPPORT<br>
       見学管理システム<br><br>
-      <span style="color:#148b78;font-weight:700">● DEMO MODE</span><br>
+
+      <span style="color:#148b78;font-weight:700">
+        ● DEMO MODE
+      </span><br>
+
       サンプルデータで動作中
     </div>
+
   </aside>
 
   <main class="main">
 
     <div class="topbar">
+
       <div>
         <div class="eyebrow">VISIT MANAGEMENT</div>
         <h1 id="pageTitle">見学申込一覧</h1>
       </div>
 
       <div class="top-actions">
-        <select class="select" id="gardenFilter" onchange="renderAll()">
+
+        <select
+          class="select"
+          id="gardenFilter"
+          onchange="renderAll()"
+        >
           <option value="all">すべての園</option>
           <option value="南花畑園">南花畑園</option>
           <option value="梅島園">梅島園</option>
@@ -657,18 +757,26 @@ tbody tr:hover{background:#f4faf8}
           <span class="avatar">本</span>
           <span>本部管理者</span>
         </div>
+
       </div>
+
     </div>
 
     <div class="stats" id="stats"></div>
 
     <!-- 申込一覧 -->
+
     <section class="view active" id="listView">
+
       <div class="panel">
 
         <div class="panel-head">
+
           <div>
-            <div class="panel-title" id="listTitle">すべての申込</div>
+            <div class="panel-title" id="listTitle">
+              すべての申込
+            </div>
+
             <div class="panel-sub" id="listSubtitle"></div>
           </div>
 
@@ -678,10 +786,13 @@ tbody tr:hover{background:#f4faf8}
             placeholder="お子さま・保護者名で検索"
             oninput="renderList()"
           >
+
         </div>
 
         <div class="table-wrap">
+
           <table>
+
             <thead>
               <tr>
                 <th>お子さま</th>
@@ -692,29 +803,58 @@ tbody tr:hover{background:#f4faf8}
                 <th></th>
               </tr>
             </thead>
+
             <tbody id="listBody"></tbody>
+
           </table>
+
         </div>
 
       </div>
+
     </section>
 
     <!-- カレンダー -->
+
     <section class="view" id="calendarView">
+
       <div class="panel">
 
         <div class="panel-head">
+
           <div>
-            <div class="panel-title">見学予定カレンダー</div>
-            <div class="panel-sub">確定した見学予定を園別に表示</div>
+            <div class="panel-title">
+              見学予定カレンダー
+            </div>
+
+            <div class="panel-sub">
+              確定した見学予定を園別に表示
+            </div>
           </div>
 
           <div class="calendar-toolbar">
-            <button class="icon-btn" onclick="changeMonth(-1)" aria-label="前月">‹</button>
+
+            <button
+              class="icon-btn"
+              onclick="changeMonth(-1)"
+              aria-label="前月"
+            >‹</button>
+
             <div class="month-title" id="monthTitle"></div>
-            <button class="icon-btn" onclick="changeMonth(1)" aria-label="翌月">›</button>
-            <button class="icon-btn" onclick="goToday()">今日</button>
+
+            <button
+              class="icon-btn"
+              onclick="changeMonth(1)"
+              aria-label="翌月"
+            >›</button>
+
+            <button
+              class="icon-btn"
+              onclick="goToday()"
+            >今日</button>
+
           </div>
+
         </div>
 
         <div class="calendar-grid" id="calendarGrid"></div>
@@ -724,36 +864,60 @@ tbody tr:hover{background:#f4faf8}
         </div>
 
       </div>
+
     </section>
 
   </main>
+
 </div>
 
 <!-- 詳細パネル -->
-<div class="modal-overlay" id="modal" onclick="closeOnOverlay(event)">
-  <div class="detail" role="dialog" aria-modal="true" aria-label="申込詳細">
+
+<div
+  class="modal-overlay"
+  id="modal"
+  onclick="closeOnOverlay(event)"
+>
+
+  <div
+    class="detail"
+    role="dialog"
+    aria-modal="true"
+    aria-label="申込詳細"
+  >
 
     <div class="detail-head">
+
       <div class="detail-title">申込詳細</div>
-      <button class="close-btn" onclick="closeDetail()" aria-label="閉じる">×</button>
+
+      <button
+        class="close-btn"
+        onclick="closeDetail()"
+        aria-label="閉じる"
+      >×</button>
+
     </div>
 
     <div class="detail-body" id="detailBody"></div>
 
   </div>
+
 </div>
 
 <script>
 "use strict";
 
-/*
-  ========================================
-  サンプルデータ
-  実在する保護者・お子さまの情報ではありません。
-  ========================================
-*/
+/* ========================================
+   保存設定
+======================================== */
 
-const applications = [
+const STORAGE_KEY = "ccs_visit_admin_demo_v2";
+
+/* ========================================
+   サンプルデータ
+======================================== */
+
+const sampleApplications = [
   {
     id:"C001",
     child:"山田 はな",
@@ -767,14 +931,16 @@ const applications = [
         status:"確定済み",
         wishes:["2026-10-15 午前","2026-10-16 午前"],
         confirmed:"2026-10-16",
-        time:"10:00"
+        time:"10:00",
+        memo:""
       },
       {
         garden:"梅島園",
         status:"日程調整",
         wishes:["2026-10-20 午後","2026-10-22 午後"],
         confirmed:"",
-        time:""
+        time:"",
+        memo:""
       }
     ]
   },
@@ -791,7 +957,8 @@ const applications = [
         status:"未対応",
         wishes:["2026-10-21 午前","2026-10-23 午前"],
         confirmed:"",
-        time:""
+        time:"",
+        memo:""
       }
     ]
   },
@@ -808,7 +975,8 @@ const applications = [
         status:"確定済み",
         wishes:["2026-10-19 午前","2026-10-20 午前"],
         confirmed:"2026-10-20",
-        time:"10:30"
+        time:"10:30",
+        memo:""
       }
     ]
   },
@@ -825,14 +993,16 @@ const applications = [
         status:"見学済み",
         wishes:["2026-10-07 午前"],
         confirmed:"2026-10-08",
-        time:"11:00"
+        time:"11:00",
+        memo:""
       },
       {
         garden:"保木間園",
         status:"確定済み",
         wishes:["2026-10-23 午後"],
         confirmed:"2026-10-23",
-        time:"14:00"
+        time:"14:00",
+        memo:""
       }
     ]
   },
@@ -849,7 +1019,8 @@ const applications = [
         status:"キャンセル",
         wishes:["2026-10-14 午前"],
         confirmed:"",
-        time:""
+        time:"",
+        memo:""
       }
     ]
   },
@@ -866,18 +1037,79 @@ const applications = [
         status:"確定済み",
         wishes:["2026-10-16 午前"],
         confirmed:"2026-10-16",
-        time:"11:00"
+        time:"11:00",
+        memo:""
       },
       {
         garden:"南花畑園",
         status:"確定済み",
         wishes:["2026-10-27 午前"],
         confirmed:"2026-10-27",
-        time:"10:00"
+        time:"10:00",
+        memo:""
       }
     ]
   }
 ];
+
+/* ========================================
+   データ読込
+======================================== */
+
+function loadApplications(){
+
+  try{
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if(saved){
+
+      const parsed = JSON.parse(saved);
+
+      if(
+        Array.isArray(parsed) &&
+        parsed.every(app =>
+          app &&
+          typeof app.id === "string" &&
+          Array.isArray(app.visits)
+        )
+      ){
+        return parsed;
+      }
+
+    }
+
+  }catch(error){
+    console.warn("保存データを読み込めませんでした",error);
+  }
+
+  return JSON.parse(JSON.stringify(sampleApplications));
+}
+
+let applications = loadApplications();
+
+function persistApplications(){
+
+  try{
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(applications)
+    );
+
+    return true;
+
+  }catch(error){
+
+    console.error("保存できませんでした",error);
+
+    return false;
+  }
+}
+
+/* ========================================
+   定数
+======================================== */
 
 const statuses = [
   {name:"未対応",className:"new"},
@@ -898,12 +1130,18 @@ let activeStatus = "all";
 let currentView = "list";
 
 const now = new Date();
+
 let calendarYear = now.getFullYear();
 let calendarMonth = now.getMonth();
 
 const $ = id => document.getElementById(id);
 
+/* ========================================
+   共通処理
+======================================== */
+
 function escapeHTML(value){
+
   return String(value ?? "")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
@@ -917,6 +1155,7 @@ function getGarden(){
 }
 
 function visibleVisits(app){
+
   const garden = getGarden();
 
   return app.visits.filter(v =>
@@ -925,18 +1164,30 @@ function visibleVisits(app){
 }
 
 function getFilteredApplications(){
-  return applications.filter(app => visibleVisits(app).length > 0);
+
+  return applications.filter(app =>
+    visibleVisits(app).length > 0
+  );
 }
 
 function statusClass(status){
-  return statuses.find(s => s.name === status)?.className || "new";
+
+  return statuses.find(s =>
+    s.name === status
+  )?.className || "new";
 }
 
 function badge(status){
-  return `<span class="pill ${statusClass(status)}">${escapeHTML(status)}</span>`;
+
+  return `
+    <span class="pill ${statusClass(status)}">
+      ${escapeHTML(status)}
+    </span>
+  `;
 }
 
 function gardenLabel(garden){
+
   const color = gardenColors[garden] || "#148b78";
 
   return `
@@ -948,17 +1199,30 @@ function gardenLabel(garden){
 }
 
 function formatDate(value){
+
   if(!value) return "未定";
+
   const parts = value.split("-");
+
+  if(parts.length !== 3) return value;
+
   return `${Number(parts[1])}月${Number(parts[2])}日`;
 }
 
+/* ========================================
+   集計
+======================================== */
+
 function renderStats(){
+
   const apps = getFilteredApplications();
 
   $("stats").innerHTML = statuses.map(s => {
+
     const count = apps.filter(app =>
-      visibleVisits(app).some(v => v.status === s.name)
+      visibleVisits(app).some(v =>
+        v.status === s.name
+      )
     ).length;
 
     return `
@@ -967,21 +1231,34 @@ function renderStats(){
         onclick="selectStatus('${s.name}')"
       >
         <div class="stat-label">${s.name}</div>
-        <div class="stat-number">${count}<small>件</small></div>
+
+        <div class="stat-number">
+          ${count}<small>件</small>
+        </div>
       </button>
     `;
+
   }).join("");
 }
 
 function selectStatus(status){
-  activeStatus = activeStatus === status ? "all" : status;
+
+  activeStatus =
+    activeStatus === status ? "all" : status;
+
   switchView("list");
 }
 
+/* ========================================
+   一覧
+======================================== */
+
 function renderList(){
+
   const query = $("searchInput").value.trim().toLowerCase();
 
   const apps = getFilteredApplications().filter(app => {
+
     const visits = visibleVisits(app);
 
     const statusMatch =
@@ -997,55 +1274,81 @@ function renderList(){
   });
 
   $("listTitle").textContent =
-    activeStatus === "all" ? "すべての申込" : activeStatus;
+    activeStatus === "all"
+      ? "すべての申込"
+      : activeStatus;
 
   $("listSubtitle").textContent =
     `${apps.length}名のお子さまを表示しています`;
 
   $("listBody").innerHTML = apps.length
+
     ? apps.map(app => {
+
         const visits = visibleVisits(app);
 
-        const relevantVisits = activeStatus === "all"
-          ? visits
-          : visits.filter(v => v.status === activeStatus);
-
-        const allVisits = app.visits;
+        const relevantVisits =
+          activeStatus === "all"
+            ? visits
+            : visits.filter(v =>
+                v.status === activeStatus
+              );
 
         return `
           <tr onclick="openDetail('${app.id}')">
+
             <td>
-              <div class="child-name">${escapeHTML(app.child)}</div>
-              <div class="muted">${escapeHTML(app.guardian)} 様</div>
+              <div class="child-name">
+                ${escapeHTML(app.child)}
+              </div>
+
+              <div class="muted">
+                ${escapeHTML(app.guardian)} 様
+              </div>
+
               ${
-                allVisits.length > 1
-                ? `<div style="margin-top:8px">
-                     <span class="pill multi">複数園 ${allVisits.length}園</span>
-                   </div>`
+                app.visits.length > 1
+                ? `
+                  <div style="margin-top:8px">
+                    <span class="pill multi">
+                      複数園 ${app.visits.length}園
+                    </span>
+                  </div>
+                `
                 : ""
               }
             </td>
 
             <td>
               <div class="garden-stack">
-                ${relevantVisits.map(v => gardenLabel(v.garden)).join("")}
+                ${
+                  relevantVisits.map(v =>
+                    gardenLabel(v.garden)
+                  ).join("")
+                }
               </div>
             </td>
 
             <td>
               <div class="garden-stack">
-                ${relevantVisits.map(v => badge(v.status)).join("")}
+                ${
+                  relevantVisits.map(v =>
+                    badge(v.status)
+                  ).join("")
+                }
               </div>
             </td>
 
             <td>
               <div class="garden-stack">
-                ${relevantVisits.map(v => `
-                  <span>
-                    ${escapeHTML(formatDate(v.confirmed))}
-                    ${escapeHTML(v.time)}
-                  </span>
-                `).join("")}
+                ${
+                  relevantVisits.map(v => `
+                    <span>
+                      ${escapeHTML(formatDate(v.confirmed))}
+                      ${escapeHTML(v.time)}
+                    </span>
+                  `).join("")
+                }
               </div>
             </td>
 
@@ -1057,75 +1360,146 @@ function renderList(){
               }
             </td>
 
-            <td style="color:#148b78;font-weight:800">詳細 ›</td>
+            <td style="color:#148b78;font-weight:800">
+              詳細 ›
+            </td>
+
           </tr>
         `;
+
       }).join("")
-    : `<tr><td colspan="6">
-         <div class="empty">該当する申込はありません</div>
-       </td></tr>`;
+
+    : `
+      <tr>
+        <td colspan="6">
+          <div class="empty">
+            該当する申込はありません
+          </div>
+        </td>
+      </tr>
+    `;
 }
 
+/* ========================================
+   画面切替
+======================================== */
+
 function switchView(view){
+
   currentView = view;
 
-  $("listView").classList.toggle("active",view === "list");
-  $("calendarView").classList.toggle("active",view === "calendar");
+  $("listView").classList.toggle(
+    "active",
+    view === "list"
+  );
 
-  $("navList").classList.toggle("active",view === "list");
-  $("navCalendar").classList.toggle("active",view === "calendar");
+  $("calendarView").classList.toggle(
+    "active",
+    view === "calendar"
+  );
+
+  $("navList").classList.toggle(
+    "active",
+    view === "list"
+  );
+
+  $("navCalendar").classList.toggle(
+    "active",
+    view === "calendar"
+  );
 
   $("pageTitle").textContent =
-    view === "list" ? "見学申込一覧" : "見学カレンダー";
+    view === "list"
+      ? "見学申込一覧"
+      : "見学カレンダー";
 
   renderAll();
 }
 
+/* ========================================
+   カレンダー
+======================================== */
+
 function renderCalendar(){
+
   $("monthTitle").textContent =
     `${calendarYear}年 ${calendarMonth + 1}月`;
 
-  const firstDay = new Date(calendarYear,calendarMonth,1);
-  const offset = firstDay.getDay();
-  const daysInMonth = new Date(calendarYear,calendarMonth+1,0).getDate();
+  const firstDay = new Date(
+    calendarYear,
+    calendarMonth,
+    1
+  );
 
-  const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
+  const offset = firstDay.getDay();
+
+  const daysInMonth = new Date(
+    calendarYear,
+    calendarMonth + 1,
+    0
+  ).getDate();
+
+  const totalCells =
+    Math.ceil((offset + daysInMonth) / 7) * 7;
 
   const today = new Date();
 
   const events = [];
 
   getFilteredApplications().forEach(app => {
-    visibleVisits(app).forEach(visit => {
+
+    visibleVisits(app).forEach((visit,visitIndex) => {
+
       if(
         visit.confirmed &&
         ["確定済み","見学済み"].includes(visit.status)
       ){
+
         events.push({
           appId:app.id,
           child:app.child,
           ...visit
         });
+
       }
+
     });
+
   });
 
   let html = "";
 
   ["日","月","火","水","木","金","土"].forEach(day => {
-    html += `<div class="weekday">${day}</div>`;
+
+    html += `
+      <div class="weekday">${day}</div>
+    `;
+
   });
 
   for(let i=0;i<totalCells;i++){
-    const date = new Date(calendarYear,calendarMonth,i-offset+1);
+
+    const date = new Date(
+      calendarYear,
+      calendarMonth,
+      i - offset + 1
+    );
 
     const y = date.getFullYear();
-    const m = String(date.getMonth()+1).padStart(2,"0");
-    const d = String(date.getDate()).padStart(2,"0");
+
+    const m = String(
+      date.getMonth() + 1
+    ).padStart(2,"0");
+
+    const d = String(
+      date.getDate()
+    ).padStart(2,"0");
 
     const dateKey = `${y}-${m}-${d}`;
 
-    const other = date.getMonth() !== calendarMonth;
+    const other =
+      date.getMonth() !== calendarMonth;
+
     const isToday =
       date.getFullYear() === today.getFullYear() &&
       date.getMonth() === today.getMonth() &&
@@ -1133,121 +1507,289 @@ function renderCalendar(){
 
     const dayEvents = events
       .filter(e => e.confirmed === dateKey)
-      .sort((a,b) => a.time.localeCompare(b.time));
+      .sort((a,b) =>
+        a.time.localeCompare(b.time)
+      );
 
     html += `
       <div class="day ${other ? "other" : ""} ${isToday ? "today" : ""}">
-        <div class="day-number">${date.getDate()}</div>
 
-        ${dayEvents.map(e => `
-          <button
-            class="event"
-            style="
-              border-left-color:${gardenColors[e.garden]};
-              background:${gardenColors[e.garden]}15;
-            "
-            onclick="openDetail('${e.appId}')"
-            title="${escapeHTML(e.garden)} ${escapeHTML(e.child)}"
-          >
-            <span class="event-time">${escapeHTML(e.time)}</span>
-            ${escapeHTML(e.garden)}<br>
-            ${escapeHTML(e.child)}
-          </button>
-        `).join("")}
+        <div class="day-number">
+          ${date.getDate()}
+        </div>
+
+        ${
+          dayEvents.map(e => `
+            <button
+              class="event"
+              style="
+                border-left-color:${gardenColors[e.garden]};
+                background:${gardenColors[e.garden]}15;
+              "
+              onclick="openDetail('${e.appId}')"
+              title="${escapeHTML(e.garden)} ${escapeHTML(e.child)}"
+            >
+              <span class="event-time">
+                ${escapeHTML(e.time)}
+              </span>
+
+              ${escapeHTML(e.garden)}<br>
+              ${escapeHTML(e.child)}
+
+            </button>
+          `).join("")
+        }
+
       </div>
     `;
+
   }
 
   $("calendarGrid").innerHTML = html;
 }
 
 function changeMonth(delta){
-  const date = new Date(calendarYear,calendarMonth+delta,1);
+
+  const date = new Date(
+    calendarYear,
+    calendarMonth + delta,
+    1
+  );
+
   calendarYear = date.getFullYear();
   calendarMonth = date.getMonth();
+
   renderCalendar();
 }
 
 function goToday(){
+
   const today = new Date();
+
   calendarYear = today.getFullYear();
   calendarMonth = today.getMonth();
+
   renderCalendar();
 }
 
+/* ========================================
+   詳細表示
+======================================== */
+
 function infoRow(label,value){
+
   return `
     <div class="info-row">
-      <div class="info-label">${escapeHTML(label)}</div>
-      <div class="info-value">${escapeHTML(value || "未登録")}</div>
+
+      <div class="info-label">
+        ${escapeHTML(label)}
+      </div>
+
+      <div class="info-value">
+        ${escapeHTML(value || "未登録")}
+      </div>
+
     </div>
   `;
 }
 
 function openDetail(id){
+
   const app = applications.find(a => a.id === id);
+
   if(!app) return;
 
-  const visitCards = app.visits.map(v => `
-    <div class="visit-card">
-      <div class="visit-card-head">
-        <div class="visit-garden">${gardenLabel(v.garden)}</div>
-        ${badge(v.status)}
-      </div>
+  const visitCards = app.visits.map((v,index) => {
 
-      <div class="visit-info">
-        <strong>第1希望：</strong>
-        ${escapeHTML(v.wishes[0] || "未登録")}
-      </div>
+    const options = statuses.map(s => `
+      <option
+        value="${s.name}"
+        ${v.status === s.name ? "selected" : ""}
+      >
+        ${s.name}
+      </option>
+    `).join("");
 
-      <div class="visit-info">
-        <strong>第2希望：</strong>
-        ${escapeHTML(v.wishes[1] || "未登録")}
-      </div>
+    return `
+      <div class="visit-card">
 
-      <div class="visit-info">
-        <strong>確定日時：</strong>
-        ${
-          v.confirmed
-          ? `${escapeHTML(formatDate(v.confirmed))} ${escapeHTML(v.time)}`
-          : "未確定"
-        }
+        <div class="visit-card-head">
+
+          <div class="visit-garden">
+            ${gardenLabel(v.garden)}
+          </div>
+
+          ${badge(v.status)}
+
+        </div>
+
+        <div class="visit-info">
+          <strong>第1希望：</strong>
+          ${escapeHTML(v.wishes[0] || "未登録")}
+        </div>
+
+        <div class="visit-info">
+          <strong>第2希望：</strong>
+          ${escapeHTML(v.wishes[1] || "未登録")}
+        </div>
+
+        <div class="visit-info">
+          <strong>確定日時：</strong>
+
+          ${
+            v.confirmed
+            ? `
+              ${escapeHTML(formatDate(v.confirmed))}
+              ${escapeHTML(v.time)}
+            `
+            : "未確定"
+          }
+        </div>
+
+        <div class="edit-area">
+
+          <div class="edit-title">
+            管理情報を編集
+          </div>
+
+          <div class="edit-field">
+
+            <label class="edit-label">
+              対応状況
+            </label>
+
+            <select
+              class="edit-input"
+              id="status_${index}"
+            >
+              ${options}
+            </select>
+
+          </div>
+
+          <div class="edit-grid">
+
+            <div class="edit-field">
+
+              <label class="edit-label">
+                見学確定日
+              </label>
+
+              <input
+                type="date"
+                class="edit-input"
+                id="date_${index}"
+                value="${escapeHTML(v.confirmed)}"
+              >
+
+            </div>
+
+            <div class="edit-field">
+
+              <label class="edit-label">
+                見学確定時間
+              </label>
+
+              <input
+                type="time"
+                class="edit-input"
+                id="time_${index}"
+                value="${escapeHTML(v.time)}"
+              >
+
+            </div>
+
+          </div>
+
+          <div class="edit-field">
+
+            <label class="edit-label">
+              職員メモ
+            </label>
+
+            <textarea
+              class="edit-input"
+              id="memo_${index}"
+              placeholder="日程調整の経緯や引き継ぎ事項など"
+            >${escapeHTML(v.memo || "")}</textarea>
+
+          </div>
+
+          <button
+            class="save-btn"
+            onclick="saveVisit('${app.id}',${index})"
+          >
+            この園の変更を保存
+          </button>
+
+          <div
+            class="save-message"
+            id="saveMessage_${index}"
+            role="status"
+          ></div>
+
+        </div>
+
       </div>
-    </div>
-  `).join("");
+    `;
+
+  }).join("");
 
   $("detailBody").innerHTML = `
+
     <div class="profile">
-      <div class="profile-name">${escapeHTML(app.child)}</div>
+
+      <div class="profile-name">
+        ${escapeHTML(app.child)}
+      </div>
 
       <div class="profile-sub">
         ${escapeHTML(app.guardian)} 様
       </div>
 
       <div style="margin-top:15px">
+
         ${
           app.visits.length > 1
-          ? `<span class="pill multi">複数園 ${app.visits.length}園</span>`
-          : `<span class="pill fixed">1園申込</span>`
+          ? `
+            <span class="pill multi">
+              複数園 ${app.visits.length}園
+            </span>
+          `
+          : `
+            <span class="pill fixed">
+              1園申込
+            </span>
+          `
         }
+
       </div>
+
     </div>
 
     <div class="detail-section">
+
       <h3>お子さま・保護者情報</h3>
+
       ${infoRow("お子さま",app.child)}
       ${infoRow("生年月日",app.birthday)}
       ${infoRow("保護者名",app.guardian)}
       ${infoRow("電話番号",app.phone)}
+
     </div>
 
     <div class="detail-section">
+
       <h3>園ごとの見学申込</h3>
+
       ${visitCards}
+
     </div>
 
     <div class="detail-section">
+
       <h3>事前シート</h3>
+
       ${
         app.previsit
         ? `<span class="pill fixed">回答済み・共通</span>`
@@ -1255,41 +1797,196 @@ function openDetail(id){
       }
 
       <div class="muted" style="margin-top:12px">
-        同じお子さまの複数園申込で、事前シートを共有します。
+        同じお子さまの複数園申込で、
+        事前シートを共有します。
       </div>
+
     </div>
 
     <div class="demo-note">
-      現在はデザイン確認用の試作版です。<br>
-      実際の申込情報の取得・変更・保存機能は、
-      Google Apps Script接続時に実装します。
+
+      現在は試作版です。<br>
+
+      変更内容は、このブラウザ内に保存されます。<br>
+
+      ほかのPCやGoogleスプレッドシートには
+      まだ反映されません。
+
     </div>
   `;
 
   $("modal").classList.add("open");
+
   document.body.style.overflow = "hidden";
 }
 
+/* ========================================
+   園ごとの保存
+======================================== */
+
+function saveVisit(appId,index){
+
+  const app = applications.find(a => a.id === appId);
+
+  if(!app || !app.visits[index]) return;
+
+  const status = $(`status_${index}`).value;
+  const confirmed = $(`date_${index}`).value;
+  const time = $(`time_${index}`).value;
+  const memo = $(`memo_${index}`).value;
+
+  const message = $(`saveMessage_${index}`);
+
+  if(!statuses.some(s => s.name === status)){
+
+    message.textContent = "対応状況を確認してください。";
+    message.style.color = "#b85c5c";
+
+    return;
+  }
+
+  if(
+    ["確定済み","見学済み"].includes(status) &&
+    (!confirmed || !time)
+  ){
+
+    message.textContent =
+      "確定済み・見学済みの場合は、見学日と時間を入力してください。";
+
+    message.style.color = "#b85c5c";
+
+    return;
+  }
+
+  if(
+    (confirmed && !time) ||
+    (!confirmed && time)
+  ){
+
+    message.textContent =
+      "見学日と時間は、両方入力するか両方空欄にしてください。";
+
+    message.style.color = "#b85c5c";
+
+    return;
+  }
+
+  const previous = {
+    ...app.visits[index]
+  };
+
+  app.visits[index] = {
+    ...previous,
+    status,
+    confirmed,
+    time,
+    memo
+  };
+
+  const saved = persistApplications();
+
+  if(!saved){
+
+    app.visits[index] = previous;
+
+    message.textContent =
+      "保存に失敗しました。ブラウザの保存設定を確認してください。";
+
+    message.style.color = "#b85c5c";
+
+    return;
+  }
+
+  renderAll();
+
+  message.textContent = "✓ 変更を保存しました";
+  message.style.color = "#148b78";
+
+  /*
+    詳細内の表示も更新するため再描画する。
+    編集中の他園の未保存内容を失わないよう、
+    保存した園の見出し部分のみ更新する。
+  */
+
+  const card = message.closest(".visit-card");
+
+  if(card){
+
+    const head = card.querySelector(".visit-card-head");
+
+    if(head){
+
+      head.innerHTML = `
+        <div class="visit-garden">
+          ${gardenLabel(app.visits[index].garden)}
+        </div>
+
+        ${badge(status)}
+      `;
+
+    }
+
+    const visitInfo = card.querySelectorAll(".visit-info");
+
+    if(visitInfo.length >= 3){
+
+      visitInfo[2].innerHTML = `
+        <strong>確定日時：</strong>
+
+        ${
+          confirmed
+          ? `
+            ${escapeHTML(formatDate(confirmed))}
+            ${escapeHTML(time)}
+          `
+          : "未確定"
+        }
+      `;
+
+    }
+
+  }
+}
+
+/* ========================================
+   詳細を閉じる
+======================================== */
+
 function closeDetail(){
+
   $("modal").classList.remove("open");
+
   document.body.style.overflow = "";
 }
 
 function closeOnOverlay(event){
-  if(event.target === $("modal")) closeDetail();
+
+  if(event.target === $("modal")){
+    closeDetail();
+  }
 }
 
 document.addEventListener("keydown",event => {
-  if(event.key === "Escape") closeDetail();
+
+  if(event.key === "Escape"){
+    closeDetail();
+  }
+
 });
 
+/* ========================================
+   全画面更新
+======================================== */
+
 function renderAll(){
+
   renderStats();
   renderList();
   renderCalendar();
 }
 
 renderAll();
+
 </script>
 
 </body>
