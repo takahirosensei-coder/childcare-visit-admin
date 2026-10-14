@@ -64,8 +64,14 @@ function reloadApplications(){
    const grouped=new Map();
    for(const item of result.items){
      const key=(item.lineUserId||item.guardian+'|'+item.phone)+'|'+item.child+'|'+item.birthday;
-     if(!grouped.has(key))grouped.set(key,{id:item.id,appliedAt:item.appliedAt,child:item.child,birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
-     const a=grouped.get(key);a.previsit=a.previsit||item.previsit;if(item.previsit&&item.previsitDetails)a.previsitDetails=item.previsitDetails;
+     if(!grouped.has(key))grouped.set(key,{id:item.id,appliedAt:item.appliedAt,
+                                           lineDisplayName:item.lineDisplayName || '',
+                                           child:item.child,birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
+     const a=grouped.get(key);
+    if (!a.lineDisplayName && item.lineDisplayName) {
+  a.lineDisplayName = item.lineDisplayName;
+}
+    a.previsit=a.previsit||item.previsit;if(item.previsit&&item.previsitDetails)a.previsitDetails=item.previsitDetails;
      a.visits.push({id:item.id,garden:item.garden,status:item.status,wishes:item.wishes,confirmed:item.confirmed,time:item.time,memo:item.memo,desiredDays:item.desiredDays||"",careStart:item.careStart||"",careEnd:item.careEnd||"",previsit:item.previsit});
    }
    applications=[...grouped.values()];renderAll();
@@ -244,8 +250,107 @@ function visibleVisits(a){return a.visits.filter(v=>getGarden()==="all"||v.garde
 function statusClass(s){return statuses.find(x=>x.name===s)?.className||"new"}function badge(s){return `<span class="pill ${statusClass(s)}">${esc(s)}</span>`}function gardenLabel(g){return `<span class="garden-item"><span class="dot" style="background:${gardenColors[g]||'#148b78'}"></span>${esc(g)}</span>`}function formatDate(s){if(!s)return "未定";const p=s.split("-");return p.length===3?`${Number(p[1])}月${Number(p[2])}日`:s}
 function renderStats(){const apps=getFilteredApplications();$("stats").innerHTML=statuses.map(s=>`<button class="stat ${activeStatus===s.name?'active':''}" onclick="selectStatus('${s.name}')"><div class="stat-label">${s.name}</div><div class="stat-number">${apps.filter(a=>visibleVisits(a).some(v=>v.status===s.name)).length}<small>件</small></div></button>`).join("")}
 function selectStatus(s){activeStatus=activeStatus===s?"all":s;switchView("list")}
-function renderList(){const q=$("searchInput").value.trim().toLowerCase();const apps=getFilteredApplications().filter(a=>(activeStatus==="all"||visibleVisits(a).some(v=>v.status===activeStatus))&&`${a.child} ${a.guardian} ${a.phone}`.toLowerCase().includes(q));$("listTitle").textContent=activeStatus==="all"?"すべての申込":activeStatus;$("listSubtitle").textContent=`${apps.length}名のお子さまを表示しています`;$("listBody").innerHTML=apps.length?apps.map(a=>{const vs=visibleVisits(a).filter(v=>activeStatus==="all"||v.status===activeStatus);return `<tr onclick="openDetail('${esc(a.id)}')"><td><div class="child-name">${esc(a.child)}</div><div class="muted">${esc(a.guardian)} 様</div>${a.visits.length>1?`<div style="margin-top:8px"><span class="pill multi">複数園 ${a.visits.length}園</span></div>`:""}</td><td><div class="garden-stack">${vs.map(v=>gardenLabel(v.garden)).join("")}</div></td><td><div class="garden-stack">${vs.map(v=>badge(v.status)).join("")}</div></td><td><div class="garden-stack">${vs.map(v=>`<span>${esc(formatDate(v.confirmed))} ${esc(v.time)}</span>`).join("")}</div></td><td>${a.previsit?'<span class="pill fixed">回答済み</span>':'<span class="pill new">未回答</span>'}</td><td style="color:#148b78;font-weight:800">詳細 ›</td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">該当する申込はありません</div></td></tr>'}
-function switchView(v){currentView=v;$("listView").classList.toggle("active",v==="list");$("calendarView").classList.toggle("active",v==="calendar");$("navList").classList.toggle("active",v==="list");$("navCalendar").classList.toggle("active",v==="calendar");$("pageTitle").textContent=v==="list"?"見学申込一覧":"見学カレンダー";renderAll()}
+function renderList() {
+  const q = $("searchInput").value.trim().toLowerCase();
+
+  const apps = getFilteredApplications().filter(a =>
+    (activeStatus === "all" ||
+      visibleVisits(a).some(v => v.status === activeStatus)) &&
+    `${a.child} ${a.guardian} ${a.phone} ${a.lineDisplayName || ''}`
+      .toLowerCase()
+      .includes(q)
+  );
+
+  $("listTitle").textContent =
+    activeStatus === "all" ? "すべての申込" : activeStatus;
+
+  $("listSubtitle").textContent =
+    `${apps.length}名のお子さまを表示しています`;
+
+  // 一覧の見出しに「LINE登録名」を追加
+  const table = $("listBody").closest("table");
+  const headerRow = table?.querySelector("thead tr");
+
+  if (headerRow && !headerRow.querySelector('[data-line-header]')) {
+    const th = document.createElement("th");
+    th.textContent = "LINE登録名";
+    th.setAttribute("data-line-header", "true");
+
+    // 「お子さま」の直後に挿入
+    headerRow.children[0].after(th);
+  }
+
+  $("listBody").innerHTML = apps.length
+    ? apps.map(a => {
+        const vs = visibleVisits(a).filter(v =>
+          activeStatus === "all" || v.status === activeStatus
+        );
+
+        return `
+          <tr onclick="openDetail('${esc(a.id)}')">
+
+            <td>
+              <div class="child-name">${esc(a.child)}</div>
+              <div class="muted">${esc(a.guardian)} 様</div>
+
+              ${
+                a.visits.length > 1
+                  ? `<div style="margin-top:8px">
+                       <span class="pill multi">
+                         複数園 ${a.visits.length}園
+                       </span>
+                     </div>`
+                  : ""
+              }
+            </td>
+
+            <td>
+              <div style="font-weight:600;color:#344b45">
+                ${esc(a.lineDisplayName || "未取得")}
+              </div>
+            </td>
+
+            <td>
+              <div class="garden-stack">
+                ${vs.map(v => gardenLabel(v.garden)).join("")}
+              </div>
+            </td>
+
+            <td>
+              <div class="garden-stack">
+                ${vs.map(v => badge(v.status)).join("")}
+              </div>
+            </td>
+
+            <td>
+              <div class="garden-stack">
+                ${vs.map(v => `
+                  <span>
+                    ${esc(formatDate(v.confirmed))}
+                    ${esc(v.time)}
+                  </span>
+                `).join("")}
+              </div>
+            </td>
+
+            <td>
+              ${
+                a.previsit
+                  ? '<span class="pill fixed">回答済み</span>'
+                  : '<span class="pill new">未回答</span>'
+              }
+            </td>
+
+            <td style="color:#148b78;font-weight:800">
+              詳細 ›
+            </td>
+
+          </tr>
+        `;
+      }).join("")
+    : '<tr><td colspan="7"><div class="empty">該当する申込はありません</div></td></tr>';
+}
+ function switchView(v){currentView=v;$("listView").classList.toggle("active",v==="list");$("calendarView").classList.toggle("active",v==="calendar");$("navList").classList.toggle("active",v==="list");$("navCalendar").classList.toggle("active",v==="calendar");$("pageTitle").textContent=v==="list"?"見学申込一覧":"見学カレンダー";renderAll()}
 function renderCalendar(){$("monthTitle").textContent=`${calendarYear}年 ${calendarMonth+1}月`;const first=new Date(calendarYear,calendarMonth,1),offset=first.getDay(),days=new Date(calendarYear,calendarMonth+1,0).getDate(),total=Math.ceil((offset+days)/7)*7,today=new Date(),events=[];getFilteredApplications().forEach(a=>visibleVisits(a).forEach(v=>{if(v.confirmed&&["確定済み","見学済み"].includes(v.status))events.push({appId:a.id,child:a.child,...v})}));let html=["日","月","火","水","木","金","土"].map(d=>`<div class="weekday">${d}</div>`).join("");for(let i=0;i<total;i++){const dt=new Date(calendarYear,calendarMonth,i-offset+1),key=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`,other=dt.getMonth()!==calendarMonth,isToday=dt.toDateString()===today.toDateString(),items=events.filter(e=>e.confirmed===key).sort((a,b)=>a.time.localeCompare(b.time));html+=`<div class="day ${other?'other':''} ${isToday?'today':''}"><div class="day-number">${dt.getDate()}</div>${items.map(e=>`<button class="event" style="border-left-color:${gardenColors[e.garden]||'#148b78'};background:${gardenColors[e.garden]||'#148b78'}15" onclick="openDetail('${esc(e.appId)}')"><span class="event-time">${esc(e.time)}</span>${esc(e.garden)}<br>${esc(e.child)}</button>`).join("")}</div>`}$("calendarGrid").innerHTML=html}
 function changeMonth(n){const d=new Date(calendarYear,calendarMonth+n,1);calendarYear=d.getFullYear();calendarMonth=d.getMonth();renderCalendar()}function goToday(){const d=new Date();calendarYear=d.getFullYear();calendarMonth=d.getMonth();renderCalendar()}
 function infoRow(label,value){return `<div class="info-row"><div class="info-label">${esc(label)}</div><div class="info-value">${esc(value||'未登録')}</div></div>`}
@@ -260,8 +365,208 @@ function togglePrevisitDetails(){
  const box=$('previsitContents'),btn=$('previsitToggle');if(!box||!btn)return;
  box.hidden=!box.hidden;btn.textContent=box.hidden?'事前シートの回答内容を見る':'回答内容を閉じる';btn.setAttribute('aria-expanded',String(!box.hidden));
 }
-function openDetail(id){const a=applications.find(x=>x.id===id);if(!a)return;const cards=a.visits.map((v,i)=>`<div class="visit-card"><div class="visit-card-head"><div class="visit-garden">${gardenLabel(v.garden)}</div>${badge(v.status)}</div><div class="visit-info"><strong>第1希望：</strong>${esc(v.wishes?.[0]||'未登録')}</div><div class="visit-info"><strong>第2希望：</strong>${esc(v.wishes?.[1]||'未登録')}</div><div class="visit-info"><strong>確定日時：</strong>${v.confirmed?`${esc(formatDate(v.confirmed))} ${esc(v.time)}`:'未確定'}</div><div class="edit-area"><div class="edit-title">管理情報を編集</div><div class="edit-field"><label class="edit-label">対応状況</label><select class="edit-input" id="status_${i}">${statuses.map(s=>`<option value="${s.name}" ${v.status===s.name?'selected':''}>${s.name}</option>`).join('')}</select></div><div class="edit-grid"><div class="edit-field"><label class="edit-label">見学確定日</label><input type="date" class="edit-input" id="date_${i}" value="${esc(v.confirmed)}"></div><div class="edit-field"><label class="edit-label">見学確定時間</label><input type="time" class="edit-input" id="time_${i}" value="${esc(v.time)}"></div></div><div class="edit-field"><label class="edit-label">希望曜日</label><input class="edit-input" id="days_${i}" value="${esc(v.desiredDays||'')}" placeholder="例：月・火・水・木・金"></div><div class="edit-grid"><div class="edit-field"><label class="edit-label">希望保育開始時間</label><input type="time" class="edit-input" id="careStart_${i}" value="${esc(v.careStart||'')}"></div><div class="edit-field"><label class="edit-label">希望保育終了時間</label><input type="time" class="edit-input" id="careEnd_${i}" value="${esc(v.careEnd||'')}"></div></div><div class="edit-field"><label class="edit-label">職員メモ</label><textarea class="edit-input" id="memo_${i}" placeholder="日程調整の経緯や引き継ぎ事項など">${esc(v.memo||'')}</textarea></div><button class="save-btn" onclick="saveVisit('${esc(a.id)}',${i})">この園の変更を保存</button><div class="save-message" id="saveMessage_${i}" role="status"></div></div></div>`).join('');$("detailBody").innerHTML=`<div class="profile"><div class="profile-name">${esc(a.child)}</div><div class="profile-sub">${esc(a.guardian)} 様</div><div style="margin-top:15px"><span class="pill ${a.visits.length>1?'multi':'fixed'}">${a.visits.length>1?`複数園 ${a.visits.length}園`:'1園申込'}</span></div></div><div class="detail-section"><h3>お子さま・保護者情報</h3>${infoRow('お子さま',a.child)}${infoRow('生年月日',a.birthday)}${infoRow('保護者名',a.guardian)}${infoRow('電話番号',a.phone)}</div><div class="detail-section"><h3>園ごとの見学申込</h3>${cards}</div><div class="detail-section"><h3>事前シート</h3>${renderPrevisitDetails(a)}<div class="muted" style="margin-top:12px">同じお子さまの複数園申込で、事前シートを共有します。</div></div><div class="demo-note">変更内容はGoogleスプレッドシートに保存されます。<br>他の端末の最新情報を確認するにはページを再読み込みしてください。</div>`;$("modal").classList.add("open");document.body.style.overflow="hidden"}
-function saveVisit(id,i){
+function openDetail(id) {
+
+  const a = applications.find(x => x.id === id);
+  if (!a) return;
+
+  const cards = a.visits.map((v, i) => `
+    <div class="visit-card">
+
+      <div class="visit-card-head">
+        <div class="visit-garden">
+          ${gardenLabel(v.garden)}
+        </div>
+        ${badge(v.status)}
+      </div>
+
+      <div class="visit-info">
+        <strong>第1希望：</strong>
+        ${esc(v.wishes?.[0] || '未登録')}
+      </div>
+
+      <div class="visit-info">
+        <strong>第2希望：</strong>
+        ${esc(v.wishes?.[1] || '未登録')}
+      </div>
+
+      <div class="visit-info">
+        <strong>確定日時：</strong>
+        ${
+          v.confirmed
+            ? `${esc(formatDate(v.confirmed))} ${esc(v.time)}`
+            : '未確定'
+        }
+      </div>
+
+      <div class="edit-area">
+
+        <div class="edit-title">管理情報を編集</div>
+
+        <div class="edit-field">
+          <label class="edit-label">対応状況</label>
+          <select class="edit-input" id="status_${i}">
+            ${statuses.map(s => `
+              <option value="${s.name}"
+                ${v.status === s.name ? 'selected' : ''}>
+                ${s.name}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+
+        <div class="edit-grid">
+
+          <div class="edit-field">
+            <label class="edit-label">見学確定日</label>
+            <input
+              type="date"
+              class="edit-input"
+              id="date_${i}"
+              value="${esc(v.confirmed)}"
+            >
+          </div>
+
+          <div class="edit-field">
+            <label class="edit-label">見学確定時間</label>
+            <input
+              type="time"
+              class="edit-input"
+              id="time_${i}"
+              value="${esc(v.time)}"
+            >
+          </div>
+
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">希望曜日</label>
+          <input
+            class="edit-input"
+            id="days_${i}"
+            value="${esc(v.desiredDays || '')}"
+            placeholder="例：月・火・水・木・金"
+          >
+        </div>
+
+        <div class="edit-grid">
+
+          <div class="edit-field">
+            <label class="edit-label">希望保育開始時間</label>
+            <input
+              type="time"
+              class="edit-input"
+              id="careStart_${i}"
+              value="${esc(v.careStart || '')}"
+            >
+          </div>
+
+          <div class="edit-field">
+            <label class="edit-label">希望保育終了時間</label>
+            <input
+              type="time"
+              class="edit-input"
+              id="careEnd_${i}"
+              value="${esc(v.careEnd || '')}"
+            >
+          </div>
+
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">職員メモ</label>
+          <textarea
+            class="edit-input"
+            id="memo_${i}"
+            placeholder="日程調整の経緯や引き継ぎ事項など"
+          >${esc(v.memo || '')}</textarea>
+        </div>
+
+        <button
+          class="save-btn"
+          onclick="saveVisit('${esc(a.id)}',${i})"
+        >
+          この園の変更を保存
+        </button>
+
+        <div
+          class="save-message"
+          id="saveMessage_${i}"
+          role="status"
+        ></div>
+
+      </div>
+    </div>
+  `).join('');
+
+  $("detailBody").innerHTML = `
+
+    <div class="profile">
+
+      <div class="profile-name">
+        ${esc(a.child)}
+      </div>
+
+      <div class="profile-sub">
+        ${esc(a.guardian)} 様
+      </div>
+
+      <div style="margin-top:15px">
+        <span class="pill ${a.visits.length > 1 ? 'multi' : 'fixed'}">
+          ${
+            a.visits.length > 1
+              ? `複数園 ${a.visits.length}園`
+              : '1園申込'
+          }
+        </span>
+      </div>
+
+    </div>
+
+    <div class="detail-section">
+
+      <h3>お子さま・保護者情報</h3>
+
+      ${infoRow('お子さま', a.child)}
+      ${infoRow('生年月日', a.birthday)}
+      ${infoRow('保護者名', a.guardian)}
+
+      ${infoRow('LINE登録名', a.lineDisplayName || '未取得')}
+
+      ${infoRow('電話番号', a.phone)}
+
+    </div>
+
+    <div class="detail-section">
+
+      <h3>園ごとの見学申込</h3>
+
+      ${cards}
+
+    </div>
+
+    <div class="detail-section">
+
+      <h3>事前シート</h3>
+
+      ${renderPrevisitDetails(a)}
+
+      <div class="muted" style="margin-top:12px">
+        同じお子さまの複数園申込で、事前シートを共有します。
+      </div>
+
+    </div>
+
+    <div class="demo-note">
+      変更内容はGoogleスプレッドシートに保存されます。<br>
+      他の端末の最新情報を確認するにはページを再読み込みしてください。
+    </div>
+  `;
+
+  $("modal").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+ function saveVisit(id,i){
  const a=applications.find(x=>x.id===id);if(!a||!a.visits[i]||!currentUser||!adminToken)return;
  const v=a.visits[i],status=$(`status_${i}`).value,confirmed=$(`date_${i}`).value,time=$(`time_${i}`).value,memo=$(`memo_${i}`).value,desiredDays=$(`days_${i}`).value,careStart=$(`careStart_${i}`).value,careEnd=$(`careEnd_${i}`).value,msg=$(`saveMessage_${i}`);
  const fail=s=>{msg.textContent=s;msg.style.color='#b85c5c'};
