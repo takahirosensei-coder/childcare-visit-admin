@@ -1547,8 +1547,18 @@ body {
   // ----------------------------------------------------------
 
   win.document.open();
-  win.document.write(html);
-  win.document.close();
+win.document.write(html);
+win.document.close();
+
+// Safariで印刷時に内容が消える現象への対策
+win.addEventListener('beforeprint', function () {
+  const page = win.document.querySelector('.print-page');
+
+  if (page) {
+    page.style.visibility = 'visible';
+    page.style.display = 'block';
+  }
+});
 
 }
 </script>
