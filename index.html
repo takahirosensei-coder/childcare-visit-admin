@@ -163,33 +163,12 @@ let activeStatus="all",selectedGarden="all",currentView="list",currentUser=null;
 // Googleログイン・自動ログイン管理
 // ============================================================
 
-function startGoogleLogin() {
-  if (!window.google?.accounts?.id) {
-    $("loginError").textContent =
-      "Googleログインの読み込みを待って、もう一度お試しください。";
-    return;
-  }
-
-  $("loginError").textContent = "";
-
-  google.accounts.id.prompt(notification => {
-    if (
-      notification.isNotDisplayed() ||
-      notification.isSkippedMoment()
-    ) {
-      $("loginError").textContent =
-        "自動ログインできない場合は、下のGoogleログインボタンをご利用ください。";
-    }
-  });
-}
-
-
-// JWT解析
+// Google認証情報を解析
 function decodeJWT(token) {
   const part = token.split(".")[1];
 
   if (!part) {
-    throw Error("Invalid token");
+    throw new Error("Invalid token");
   }
 
   const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
@@ -210,9 +189,7 @@ function handleCredential(response) {
   try {
     const data = decodeJWT(response.credential);
 
-    const email = String(
-      data.email || ""
-    ).toLowerCase();
+    const email = String(data.email || "").toLowerCase();
 
     if (
       data.aud !== CLIENT_ID ||
@@ -233,27 +210,27 @@ function handleCredential(response) {
       ...USERS[email]
     };
 
-    // ログイン画面を閉じる
     $("loginPage").hidden = true;
     $("app").hidden = false;
 
     $("loginPage").style.display = "none";
     $("app").style.display = "flex";
 
-    $("userRole").textContent =
-      currentUser.role;
+    $("userRole").textContent = currentUser.role;
 
     $("userAvatar").textContent =
       currentUser.role === "本部"
         ? "本"
         : currentUser.role.charAt(0);
 
+    $("loginError").textContent = "";
+
     selectGarden(currentUser.garden);
 
     reloadApplications();
 
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
 
     $("loginError").textContent =
       "ログイン情報を確認できませんでした。";
@@ -272,14 +249,12 @@ function initGoogle() {
   google.accounts.id.initialize({
     client_id: CLIENT_ID,
     callback: handleCredential,
-
-    // Googleアカウントを自動選択
     auto_select: true,
-
-    ux_mode: "popup"
+    ux_mode: "popup",
+    cancel_on_tap_outside: false
   });
 
-  // Googleログインボタン
+  // 通常ログインボタン
   google.accounts.id.renderButton(
     $("googleButton"),
     {
@@ -292,16 +267,26 @@ function initGoogle() {
     }
   );
 
-  // ページ更新時に自動ログインを試みる
-  google.accounts.id.prompt();
+  // ページ更新時にGoogle認証を試みる
+  google.accounts.id.prompt(notification => {
+
+    if (currentUser) return;
+
+    if (
+      notification.isNotDisplayed() ||
+      notification.isSkippedMoment()
+    ) {
+      console.info(
+        "Google自動認証を利用できません。必要に応じてログインボタンを使用してください。"
+      );
+    }
+
+  });
 }
 
 
 // ページ読み込み時
-window.addEventListener(
-  "load",
-  initGoogle
-);
+window.addEventListener("load", initGoogle);
 
 
 // ログアウト
@@ -312,14 +297,21 @@ function logout() {
   applications = [];
 
   // 明示的にログアウトした場合は自動ログインを停止
-  google?.accounts?.id?.disableAutoSelect();
+  if (window.google?.accounts?.id) {
+    google.accounts.id.disableAutoSelect();
+  }
 
+  $("app").hidden = true;
   $("app").style.display = "none";
+
+  $("loginPage").hidden = false;
   $("loginPage").style.display = "grid";
+
   $("loginError").textContent = "";
 
   closeDetail();
-}function getGarden(){return selectedGarden}function selectGarden(g){selectedGarden=g;document.querySelectorAll(".garden-btn").forEach(b=>b.classList.toggle("active",b.dataset.garden===g));renderAll()}
+}
+   function getGarden(){return selectedGarden}function selectGarden(g){selectedGarden=g;document.querySelectorAll(".garden-btn").forEach(b=>b.classList.toggle("active",b.dataset.garden===g));renderAll()}
 function visibleVisits(a){return a.visits.filter(v=>getGarden()==="all"||v.garden===getGarden())}function getFilteredApplications(){return applications.filter(a=>visibleVisits(a).length)}
 function statusClass(s){return statuses.find(x=>x.name===s)?.className||"new"}function badge(s){return `<span class="pill ${statusClass(s)}">${esc(s)}</span>`}function gardenLabel(g){return `<span class="garden-item"><span class="dot" style="background:${gardenColors[g]||'#148b78'}"></span>${esc(g)}</span>`}function formatDate(s){if(!s)return "未定";const p=s.split("-");return p.length===3?`${Number(p[1])}月${Number(p[2])}日`:s}
 function renderStats(){const apps=getFilteredApplications();$("stats").innerHTML=statuses.map(s=>`<button class="stat ${activeStatus===s.name?'active':''}" onclick="selectStatus('${s.name}')"><div class="stat-label">${s.name}</div><div class="stat-number">${apps.filter(a=>visibleVisits(a).some(v=>v.status===s.name)).length}<small>件</small></div></button>`).join("")}
