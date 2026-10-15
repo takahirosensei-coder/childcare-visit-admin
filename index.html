@@ -146,7 +146,23 @@ function reloadApplications(){
   a.lineDisplayName = item.lineDisplayName;
 }
     a.previsit=a.previsit||item.previsit;if(item.previsit&&item.previsitDetails)a.previsitDetails=item.previsitDetails;
-     a.visits.push({id:item.id,garden:item.garden,status:item.status,wishes:item.wishes,confirmed:item.confirmed,time:item.time,memo:item.memo,desiredDays:item.desiredDays||"",careStart:item.careStart||"",careEnd:item.careEnd||"",previsit:item.previsit});
+     a.visits.push({
+  id: item.id,
+  garden: item.garden,
+  status: item.status,
+  wishes: item.wishes,
+  confirmed: item.confirmed,
+  time: item.time,
+  memo: item.memo,
+  desiredDays: item.desiredDays || "",
+  careStart: item.careStart || "",
+  careEnd: item.careEnd || "",
+  previsit: item.previsit,
+
+  // 追加：申込時の質問・事前シートの連絡事項
+  question: item.question || "",
+  previsitMessage: item.previsitMessage || ""
+});
    }
    applications=[...grouped.values()];renderAll();
  }).catch(err=>{alert('申込データを取得できません：'+err.message)});
@@ -599,7 +615,36 @@ function openDetail(id) {
 
       ${infoRow('LINE登録名', a.lineDisplayName || '未取得')}
 
-      ${infoRow('電話番号', a.phone)}
+            ${infoRow('電話番号', a.phone)}
+
+    </div>
+
+    <div class="detail-section">
+
+      <h3>質問・ご相談（申込時）</h3>
+
+      ${
+        a.visits.map(v => `
+          <div style="margin-bottom:15px">
+            ${
+              a.visits.length > 1
+                ? `<div style="font-weight:700;margin-bottom:8px">
+                     ${esc(v.garden)}
+                   </div>`
+                : ''
+            }
+
+            <div style="
+              padding:15px;
+              background:#f7f9f8;
+              border-radius:10px;
+              white-space:pre-wrap;
+              overflow-wrap:anywhere;
+              line-height:1.8;
+            ">${esc(v.question || '未入力')}</div>
+          </div>
+        `).join('')
+      }
 
     </div>
 
@@ -615,7 +660,34 @@ function openDetail(id) {
 
       <h3>事前シート</h3>
 
-      ${renderPrevisitDetails(a)}
+            ${renderPrevisitDetails(a)}
+
+      <div style="margin-top:20px">
+
+        <div style="
+          color:var(--green);
+          font-size:13px;
+          font-weight:800;
+          margin-bottom:10px;
+        ">
+          園への連絡事項（事前シート）
+        </div>
+
+        <div style="
+          padding:15px;
+          background:#f7f9f8;
+          border-radius:10px;
+          white-space:pre-wrap;
+          overflow-wrap:anywhere;
+          line-height:1.8;
+        ">${
+          esc(
+            a.visits.find(v => v.previsitMessage)?.previsitMessage
+            || '未入力'
+          )
+        }</div>
+
+      </div>
 
       <div class="muted" style="margin-top:12px">
         同じお子さまの複数園申込で、事前シートを共有します。
