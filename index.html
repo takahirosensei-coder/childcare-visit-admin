@@ -141,7 +141,10 @@ function reloadApplications(){
      const key=(item.lineUserId||item.guardian+'|'+item.phone)+'|'+item.child+'|'+item.birthday;
      if(!grouped.has(key))grouped.set(key,{id:item.id,appliedAt:item.appliedAt,
                                            lineDisplayName:item.lineDisplayName || '',
-                                           child:item.child,desiredClass:item.desiredClass||'',birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
+                                           child:item.child,
+childFurigana:item.childFurigana||'',
+desiredClass:item.desiredClass||'',
+birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
      const a=grouped.get(key);
     if (!a.lineDisplayName && item.lineDisplayName) {
   a.lineDisplayName = item.lineDisplayName;
@@ -390,9 +393,17 @@ if (!headerRow.querySelector('[data-applied-header]')) {
           <tr onclick="openDetail('${esc(a.id)}')">
 
             <td>
-              <div class="child-name">${esc(a.child)}</div>
-              <div class="muted">${esc(a.guardian)} 様</div>
+              <td>
+  ${
+    a.childFurigana
+      ? `<div style="font-size:11px;color:#7a8582;margin-bottom:4px;">
+           ${esc(a.childFurigana)}
+         </div>`
+      : ''
+  }
 
+  <div class="child-name">${esc(a.child)}</div>
+  <div class="muted">${esc(a.guardian)} 様</div>
               ${
                 a.visits.length > 1
                   ? `<div style="margin-top:8px">
@@ -617,9 +628,19 @@ function openDetail(id) {
 
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
 
+  <div>
+  ${
+    a.childFurigana
+      ? `<div style="font-size:12px;color:#7a8582;margin-bottom:5px;">
+           ${esc(a.childFurigana)}
+         </div>`
+      : ''
+  }
+
   <div class="profile-name">
     ${esc(a.child)}
   </div>
+</div>
 
   ${
     a.desiredClass
