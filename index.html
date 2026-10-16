@@ -141,7 +141,7 @@ function reloadApplications(){
      const key=(item.lineUserId||item.guardian+'|'+item.phone)+'|'+item.child+'|'+item.birthday;
      if(!grouped.has(key))grouped.set(key,{id:item.id,appliedAt:item.appliedAt,
                                            lineDisplayName:item.lineDisplayName || '',
-                                           child:item.child,birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
+                                           child:item.child,desiredClass:item.desiredClass||'',birthday:item.birthday,guardian:item.guardian,phone:item.phone,previsit:false,previsitDetails:null,visits:[]});
      const a=grouped.get(key);
     if (!a.lineDisplayName && item.lineDisplayName) {
   a.lineDisplayName = item.lineDisplayName;
@@ -587,9 +587,21 @@ function openDetail(id) {
 
     <div class="profile">
 
-      <div class="profile-name">
-        ${esc(a.child)}
-      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+
+  <div class="profile-name">
+    ${esc(a.child)}
+  </div>
+
+  ${
+    a.desiredClass
+      ? `<span class="pill fixed" style="white-space:nowrap;">
+           ${esc(a.desiredClass)}
+         </span>`
+      : ''
+  }
+
+</div>
 
       <div class="profile-sub">
         ${esc(a.guardian)} 様
