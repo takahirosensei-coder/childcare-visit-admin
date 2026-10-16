@@ -2185,4 +2185,56 @@ getFilteredApplications = function () {
 
 })();
 </script>
+   <style>
+/* 申込一覧：PC表示の列幅を調整 */
+@media screen and (min-width: 801px) {
+
+  #listView .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  #listView table {
+    width: 100%;
+    min-width: 1050px;
+    table-layout: fixed;
+  }
+
+  #listView th,
+  #listView td {
+    padding: 15px 10px;
+    vertical-align: middle;
+  }
+
+  #listView th:nth-child(1),
+  #listView td:nth-child(1) { width: 15%; }
+
+  #listView th:nth-child(2),
+  #listView td:nth-child(2) { width: 13%; }
+
+  #listView th:nth-child(3),
+  #listView td:nth-child(3) { width: 13%; }
+
+  #listView th:nth-child(4),
+  #listView td:nth-child(4) { width: 9%; }
+
+  #listView th:nth-child(5),
+  #listView td:nth-child(5) { width: 12%; }
+
+  #listView th:nth-child(6),
+  #listView td:nth-child(6) { width: 10%; }
+
+  #listView th:nth-child(7),
+  #listView td:nth-child(7) { width: 13%; }
+
+  #listView th:nth-child(8),
+  #listView td:nth-child(8) { width: 10%; }
+
+  #listView th:nth-child(9),
+  #listView td:nth-child(9) {
+    width: 5%;
+    text-align: center;
+  }
+}
+</style>
 </body></html>
