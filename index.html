@@ -50,12 +50,22 @@
   #listView tbody td:nth-child(1)::before { content: none; }
   #listView tbody td:nth-child(1) .child-name { font-size: 17px; }
   #listView tbody td:nth-child(2)::before { content: 'LINE登録名'; }
-  #listView tbody td:nth-child(3)::before { content: '申込園'; }
-  #listView tbody td:nth-child(4)::before { content: '対応状況'; }
-  #listView tbody td:nth-child(5)::before { content: '見学確定日'; }
-  #listView tbody td:nth-child(6)::before { content: '事前シート'; }
-  #listView tbody td:nth-child(7) { padding: 12px 0 0; text-align: right; color: var(--green); }
-  #listView tbody td:nth-child(7)::before { content: none; }
+#listView tbody td:nth-child(3)::before { content: '申込園'; }
+#listView tbody td:nth-child(4)::before { content: '希望クラス'; }
+#listView tbody td:nth-child(5)::before { content: '申込日時'; }
+#listView tbody td:nth-child(6)::before { content: '対応状況'; }
+#listView tbody td:nth-child(7)::before { content: '見学確定日'; }
+#listView tbody td:nth-child(8)::before { content: '事前シート'; }
+
+#listView tbody td:nth-child(9) {
+  padding: 12px 0 0;
+  text-align: right;
+  color: var(--green);
+}
+
+#listView tbody td:nth-child(9)::before {
+  content: none;
+}
   #listView tbody tr:has(.empty) { padding: 0; }
   #listView tbody tr:has(.empty) td { padding: 0; }
   #listView tbody tr:has(.empty) td::before { content: none; }
@@ -80,70 +90,6 @@
   #listView tbody td { padding-left: 94px; }
   #listView tbody td::before { width: 88px; font-size: 10px; }
   .garden-btn { font-size: 11px; }
-}
-   /* ==========================================
-   PC版：申込一覧の列幅を統一
-========================================== */
-
-@media screen and (min-width: 801px) {
-
-  #listView table {
-    table-layout: fixed;
-    width: 100%;
-    min-width: 1150px;
-  }
-
-  #listView th,
-  #listView td {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  #listView th:nth-child(1),
-  #listView td:nth-child(1) {
-    width: 20%;
-  }
-
-  #listView th:nth-child(2),
-  #listView td:nth-child(2) {
-    width: 12%;
-  }
-
-  #listView th:nth-child(3),
-  #listView td:nth-child(3) {
-    width: 13%;
-  }
-
-  #listView th:nth-child(4),
-  #listView td:nth-child(4) {
-    width: 9%;
-  }
-
-  #listView th:nth-child(5),
-  #listView td:nth-child(5) {
-    width: 12%;
-  }
-
-  #listView th:nth-child(6),
-  #listView td:nth-child(6) {
-    width: 11%;
-  }
-
-  #listView th:nth-child(7),
-  #listView td:nth-child(7) {
-    width: 12%;
-  }
-
-  #listView th:nth-child(8),
-  #listView td:nth-child(8) {
-    width: 8%;
-  }
-
-  #listView th:nth-child(9),
-  #listView td:nth-child(9) {
-    width: 3%;
-  }
-
 }
 </style>
 </head>
@@ -452,8 +398,6 @@ function renderList() {
 
         return `
           <tr onclick="openDetail('${esc(a.id)}')">
-
-            <td>
               <td>
   ${
     a.childFurigana
