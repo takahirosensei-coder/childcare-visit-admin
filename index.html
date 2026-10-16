@@ -362,6 +362,13 @@ function renderList() {
 
     // 「お子さま」の直後に挿入
     headerRow.children[0].after(th);
+     // 「申込園」の右側に「希望クラス」を追加
+if (!headerRow.querySelector('[data-class-header]')) {
+  const classTh = document.createElement("th");
+  classTh.textContent = "希望クラス";
+  classTh.setAttribute("data-class-header", "true");
+  headerRow.children[2].after(classTh);
+}
   }
 
   $("listBody").innerHTML = apps.length
@@ -395,10 +402,16 @@ function renderList() {
             </td>
 
             <td>
-              <div class="garden-stack">
-                ${vs.map(v => gardenLabel(v.garden)).join("")}
-              </div>
-            </td>
+  <div class="garden-stack">
+    ${vs.map(v => gardenLabel(v.garden)).join("")}
+  </div>
+</td>
+
+<td>
+  <span class="pill fixed" style="white-space:nowrap;font-size:13px;padding:6px 12px;font-weight:700;">
+    ${esc(a.desiredClass || vs[0]?.desiredClass || "未設定")}
+  </span>
+</td>
 
             <td>
               <div class="garden-stack">
@@ -432,7 +445,7 @@ function renderList() {
           </tr>
         `;
       }).join("")
-    : '<tr><td colspan="7"><div class="empty">該当する申込はありません</div></td></tr>';
+    : '<tr><td colspan="8"><div class="empty">該当する申込はありません</div></td></tr>';
 }
  function switchView(v){currentView=v;$("listView").classList.toggle("active",v==="list");$("calendarView").classList.toggle("active",v==="calendar");$("navList").classList.toggle("active",v==="list");$("navCalendar").classList.toggle("active",v==="calendar");$("pageTitle").textContent=v==="list"?"見学申込一覧":"見学カレンダー";renderAll()}
 function renderCalendar(){$("monthTitle").textContent=`${calendarYear}年 ${calendarMonth+1}月`;const first=new Date(calendarYear,calendarMonth,1),offset=first.getDay(),days=new Date(calendarYear,calendarMonth+1,0).getDate(),total=Math.ceil((offset+days)/7)*7,today=new Date(),events=[];getFilteredApplications().forEach(a=>visibleVisits(a).forEach(v=>{if(v.confirmed&&["確定済み","見学済み"].includes(v.status))events.push({appId:a.id,child:a.child,...v})}));let html=["日","月","火","水","木","金","土"].map(d=>`<div class="weekday">${d}</div>`).join("");for(let i=0;i<total;i++){const dt=new Date(calendarYear,calendarMonth,i-offset+1),key=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`,other=dt.getMonth()!==calendarMonth,isToday=dt.toDateString()===today.toDateString(),items=events.filter(e=>e.confirmed===key).sort((a,b)=>a.time.localeCompare(b.time));html+=`<div class="day ${other?'other':''} ${isToday?'today':''}"><div class="day-number">${dt.getDate()}</div>${items.map(e=>`<button class="event" style="border-left-color:${gardenColors[e.garden]||'#148b78'};background:${gardenColors[e.garden]||'#148b78'}15" onclick="openDetail('${esc(e.appId)}')"><span class="event-time">${esc(e.time)}</span>${esc(e.garden)}<br>${esc(e.child)}</button>`).join("")}</div>`}$("calendarGrid").innerHTML=html}
