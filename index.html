@@ -81,6 +81,70 @@
   #listView tbody td::before { width: 88px; font-size: 10px; }
   .garden-btn { font-size: 11px; }
 }
+   /* ==========================================
+   PC版：申込一覧の列幅を統一
+========================================== */
+
+@media screen and (min-width: 801px) {
+
+  #listView table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1150px;
+  }
+
+  #listView th,
+  #listView td {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  #listView th:nth-child(1),
+  #listView td:nth-child(1) {
+    width: 20%;
+  }
+
+  #listView th:nth-child(2),
+  #listView td:nth-child(2) {
+    width: 12%;
+  }
+
+  #listView th:nth-child(3),
+  #listView td:nth-child(3) {
+    width: 13%;
+  }
+
+  #listView th:nth-child(4),
+  #listView td:nth-child(4) {
+    width: 9%;
+  }
+
+  #listView th:nth-child(5),
+  #listView td:nth-child(5) {
+    width: 12%;
+  }
+
+  #listView th:nth-child(6),
+  #listView td:nth-child(6) {
+    width: 11%;
+  }
+
+  #listView th:nth-child(7),
+  #listView td:nth-child(7) {
+    width: 12%;
+  }
+
+  #listView th:nth-child(8),
+  #listView td:nth-child(8) {
+    width: 8%;
+  }
+
+  #listView th:nth-child(9),
+  #listView td:nth-child(9) {
+    width: 3%;
+  }
+
+}
 </style>
 </head>
 <body>
@@ -354,33 +418,30 @@ function renderList() {
   $("listSubtitle").textContent =
     `${apps.length}名のお子さまを表示しています`;
 
-  // 一覧の見出しに「LINE登録名」を追加
-  const table = $("listBody").closest("table");
-  const headerRow = table?.querySelector("thead tr");
+    // ==================================================
+  // 申込一覧：見出しをデータの列順に統一
+  // ==================================================
 
-  if (headerRow && !headerRow.querySelector('[data-line-header]')) {
-    const th = document.createElement("th");
-    th.textContent = "LINE登録名";
-    th.setAttribute("data-line-header", "true");
+  const headerRow = $("listBody")
+    .closest("table")
+    .querySelector("thead tr");
 
-    // 「お子さま」の直後に挿入
-    headerRow.children[0].after(th);
-     // 「申込園」の右側に「希望クラス」を追加
-if (!headerRow.querySelector('[data-class-header]')) {
-  const classTh = document.createElement("th");
-  classTh.textContent = "希望クラス";
-  classTh.setAttribute("data-class-header", "true");
-  headerRow.children[2].after(classTh);
-}
-     // 「希望クラス」の右側に「申込日時」を追加
-if (!headerRow.querySelector('[data-applied-header]')) {
-  const th = document.createElement("th");
-  th.textContent = "申込日時";
-  th.setAttribute("data-applied-header", "true");
+  if (headerRow) {
+    const headers = [
+      "お子さま",
+      "LINE登録名",
+      "申込園",
+      "希望クラス",
+      "申込日時",
+      "対応状況",
+      "見学確定日",
+      "事前シート",
+      ""
+    ];
 
-  const classHeader = headerRow.querySelector('[data-class-header]');
-  if (classHeader) classHeader.after(th);
-}
+    headerRow.innerHTML = headers
+      .map(text => `<th>${text}</th>`)
+      .join("");
   }
 
   $("listBody").innerHTML = apps.length
