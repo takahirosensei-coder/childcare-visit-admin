@@ -149,7 +149,8 @@ function reloadApplications(){
      a.visits.push({
   id: item.id,
   garden: item.garden,
-  status: item.status,
+desiredClass: item.desiredClass || "",
+status: item.status,
   wishes: item.wishes,
   confirmed: item.confirmed,
   time: item.time,
@@ -1865,6 +1866,155 @@ getFilteredApplications = function () {
   } else {
     setupSearchAndSort();
   }
+})();
+</script>
+   <!-- ============================================
+     見学管理：希望クラス絞り込み
+============================================= -->
+<style>
+.ccs-class-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 26px 18px;
+}
+
+.ccs-class-btn {
+  padding: 9px 13px;
+  border: 1px solid #dce9e5;
+  border-radius: 9px;
+  background: #fff;
+  color: #68736f;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ccs-class-btn:hover {
+  background: #f0f8f5;
+}
+
+.ccs-class-btn.active {
+  background: #148b78;
+  border-color: #148b78;
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  .ccs-class-filter {
+    padding: 0 15px 16px;
+  }
+
+  .ccs-class-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  let selectedClass = 'all';
+
+  // 希望クラスの表記を統一
+  // 例：0歳、0歳児、0歳児クラス
+  function normalizeClass(value) {
+    const text = String(value || '')
+      .normalize('NFKC')
+      .trim();
+
+    const match = text.match(/([0-5])\s*歳/);
+
+    return match ? match[1] : '';
+  }
+
+  // 既存の園別・検索・並び替え処理を維持
+  const originalFilter = getFilteredApplications;
+
+  getFilteredApplications = function () {
+    const result = originalFilter();
+
+    if (selectedClass === 'all') {
+      return result;
+    }
+
+    return result.filter(a =>
+      visibleVisits(a).some(v =>
+        normalizeClass(v.desiredClass) === selectedClass
+      )
+    );
+  };
+
+  function setupClassFilter() {
+    if (document.getElementById('ccsClassFilter')) {
+      return;
+    }
+
+    const panelHead = document.querySelector(
+      '#listView .panel-head'
+    );
+
+    if (!panelHead) return;
+
+    const container = document.createElement('div');
+
+    container.id = 'ccsClassFilter';
+    container.className = 'ccs-class-filter';
+
+    const classes = [
+      { value: 'all', label: 'すべて' },
+      { value: '0', label: '0歳児' },
+      { value: '1', label: '1歳児' },
+      { value: '2', label: '2歳児' },
+      { value: '3', label: '3歳児' },
+      { value: '4', label: '4歳児' },
+      { value: '5', label: '5歳児' }
+    ];
+
+    classes.forEach(item => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.className = 'ccs-class-btn';
+      button.textContent = item.label;
+      button.dataset.classValue = item.value;
+
+      if (item.value === selectedClass) {
+        button.classList.add('active');
+      }
+
+      button.addEventListener('click', function () {
+        selectedClass = item.value;
+
+        container.querySelectorAll(
+          '.ccs-class-btn'
+        ).forEach(btn => {
+          btn.classList.toggle(
+            'active',
+            btn.dataset.classValue === selectedClass
+          );
+        });
+
+        renderAll();
+      });
+
+      container.appendChild(button);
+    });
+
+    panelHead.after(container);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener(
+      'DOMContentLoaded',
+      setupClassFilter
+    );
+  } else {
+    setupClassFilter();
+  }
+
 })();
 </script>
 </body></html>
