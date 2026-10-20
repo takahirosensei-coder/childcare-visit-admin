@@ -1076,7 +1076,16 @@ function renderVisitPrintWindow(win, data) {
   // ----------------------------------------------------------
 
   const childRows = [
-    row('お子さま氏名', data.child),
+    const childRows = [
+    row(
+      'お子さま氏名',
+      [
+        data.child,
+        data.childFurigana
+          ? `（${data.childFurigana}）`
+          : ''
+      ].filter(Boolean).join('')
+    ),
     row('生年月日', data.birthday),
     row('性別', get(data.family, 30)),
     row('希望クラス', get(data.family, 8)),
