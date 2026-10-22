@@ -176,7 +176,8 @@ status: item.status,
 
   // 追加：申込時の質問・事前シートの連絡事項
   question: item.question || "",
-  previsitMessage: item.previsitMessage || ""
+  previsitMessage: item.previsitMessage || "",
+  postVisitPdfId: item.postVisitPdfId || ""
 });
    }
    applications=[...grouped.values()];renderAll();
@@ -802,6 +803,44 @@ openDetail = function(id) {
   const body = document.getElementById('detailBody');
 
   if (!body) return;
+
+  // 見学後シート：申込詳細の最上部に、PDF登録済みの園をすべて表示
+  const pdfVisits = a.visits.filter(v =>
+    /^[a-zA-Z0-9_-]{10,}$/.test(String(v.postVisitPdfId || '').trim())
+  );
+
+  if (pdfVisits.length) {
+    const pdfSection = document.createElement('section');
+    pdfSection.className = 'detail-section';
+    pdfSection.style.marginTop = '20px';
+
+    const heading = document.createElement('h3');
+    heading.textContent = '見学後シート';
+    pdfSection.appendChild(heading);
+
+    pdfVisits.forEach(v => {
+      const row = document.createElement('div');
+      row.style.cssText = 'margin:0 0 14px;padding:14px;border:1px solid #d9e9e4;border-radius:12px;background:#f7fbf9;';
+
+      const gardenName = document.createElement('div');
+      gardenName.textContent = v.garden;
+      gardenName.style.cssText = 'font-weight:800;margin-bottom:10px;color:#344b45;';
+      row.appendChild(gardenName);
+
+      const link = document.createElement('a');
+      link.textContent = '📄 見学後シートを見る ↗';
+      link.href = 'https://drive.google.com/file/d/' + encodeURIComponent(v.postVisitPdfId.trim()) + '/view';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.style.cssText = 'display:block;width:100%;padding:14px;border-radius:10px;background:#148b78;color:white;text-align:center;text-decoration:none;font-weight:800;';
+      row.appendChild(link);
+      pdfSection.appendChild(row);
+    });
+
+    const profile = body.querySelector('.profile');
+    if (profile) profile.after(pdfSection);
+    else body.prepend(pdfSection);
+  }
 
   const box = document.createElement('div');
 
